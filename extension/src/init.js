@@ -2,7 +2,7 @@ import { setupServer } from './server.js'
 import utils from './utils.js'
 import config from './config/config.js'
 
-const port = config.getModuleConfig().port || 8082
+const port = config.getModuleConfig().port || 8080
 
 const server = setupServer()
 const logger = utils.getLogger()

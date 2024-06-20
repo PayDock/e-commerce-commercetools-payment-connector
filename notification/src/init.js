@@ -7,7 +7,7 @@ const logger = getLogger()
 
 const moduleConfig = config.getModuleConfig()
 
-const port = moduleConfig.port || 8443
+const port = moduleConfig.port || 8080
 
 if (moduleConfig.keepAliveTimeout !== undefined)
   server.keepAliveTimeout = moduleConfig.keepAliveTimeout

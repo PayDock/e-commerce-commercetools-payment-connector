@@ -11,7 +11,15 @@ async function execute(paymentObject) {
         paymentObject?.custom?.fields?.PaymentExtensionRequest
     )
     let CommerceToolsUserId = null;
-    if(paymentExtensionRequest.request){
+    const amountPlanned = paymentObject.amountPlanned ?? null;
+    let totalPrice = 0;
+    if (amountPlanned && amountPlanned.type === "centPrecision") {
+        const fraction = 10 ** amountPlanned.fractionDigits;
+        const centAmount = amountPlanned.centAmount;
+        totalPrice = centAmount / fraction;
+    }
+
+    if (paymentExtensionRequest.request) {
         CommerceToolsUserId = paymentExtensionRequest.request.CommerceToolsUserId
     }
     const paydockCredentials = await config.getPaydockConfig('all', true);
@@ -50,7 +58,7 @@ async function execute(paymentObject) {
                 title: paydockCredentials.widget.payment_methods_cards_title,
                 description: paydockCredentials.widget.payment_methods_cards_description,
                 config: {
-                    card_use_on_checkout: connection.card_use_on_checkout,
+                    card_use_on_checkout: isUseOnCheckout('card', connection, paydockCredentials, totalPrice),
                     card_gateway_id: connection.card_gateway_id,
                     card_3ds: connection.card_3ds,
                     card_3ds_service_id: connection.card_3ds_service_id,
@@ -81,7 +89,7 @@ async function execute(paymentObject) {
                 title: paydockCredentials.payment_methods_wallets_apple_pay_title,
                 description: paydockCredentials.payment_methods_wallets_apple_pay_description,
                 config: {
-                    wallets_apple_pay_use_on_checkout: connection.wallets_apple_pay_use_on_checkout,
+                    wallets_apple_pay_use_on_checkout: isUseOnCheckout('apple-pay', connection, paydockCredentials, totalPrice),
                     wallets_apple_pay_gateway_id: connection.wallets_apple_pay_gateway_id,
                     wallets_apple_pay_fraud: connection.wallets_apple_pay_fraud,
                     wallets_apple_pay_fraud_service_id: connection.wallets_apple_pay_fraud_service_id,
@@ -94,7 +102,7 @@ async function execute(paymentObject) {
                 title: paydockCredentials.payment_methods_wallets_google_pay_title,
                 description: paydockCredentials.payment_methods_wallets_google_pay_description,
                 config: {
-                    wallets_google_pay_use_on_checkout: connection.wallets_google_pay_use_on_checkout,
+                    wallets_google_pay_use_on_checkout: isUseOnCheckout('google-pay', connection, paydockCredentials, totalPrice),
                     wallets_google_pay_gateway_id: connection.wallets_google_pay_gateway_id,
                     wallets_google_pay_fraud: connection.wallets_google_pay_fraud,
                     wallets_google_pay_fraud_service_id: connection.wallets_google_pay_fraud_service_id,
@@ -120,7 +128,7 @@ async function execute(paymentObject) {
                 title: paydockCredentials.payment_methods_wallets_paypal_title,
                 description: paydockCredentials.payment_methods_wallets_paypal_description,
                 config: {
-                    wallets_paypal_smart_button_use_on_checkout: connection.wallets_paypal_smart_button_use_on_checkout,
+                    wallets_paypal_smart_button_use_on_checkout: isUseOnCheckout('paypal', connection, paydockCredentials, totalPrice),
                     wallets_paypal_smart_button_gateway_id: connection.wallets_paypal_smart_button_gateway_id,
                     wallets_paypal_smart_button_fraud: connection.wallets_paypal_smart_button_fraud,
                     wallets_paypal_smart_button_fraud_service_id: connection.wallets_paypal_smart_button_fraud_service_id,
@@ -134,7 +142,7 @@ async function execute(paymentObject) {
                 title: paydockCredentials.payment_methods_alternative_payment_method_afterpay_v1_title,
                 description: paydockCredentials.payment_methods_alternative_payment_method_afterpay_v1_description,
                 config: {
-                    alternative_payment_methods_afterpay_v1_use_on_checkout: connection.alternative_payment_methods_afterpay_v1_use_on_checkout,
+                    alternative_payment_methods_afterpay_v1_use_on_checkout: isUseOnCheckout('afterpay_v1', connection, paydockCredentials, totalPrice),
                     alternative_payment_methods_afterpay_v1_gateway_id: connection.alternative_payment_methods_afterpay_v1_gateway_id,
                     alternative_payment_methods_afterpay_v1_fraud: connection.alternative_payment_methods_afterpay_v1_fraud,
                     alternative_payment_methods_afterpay_v1_fraud_service_id: connection.alternative_payment_methods_afterpay_v1_fraud_service_id,
@@ -147,7 +155,7 @@ async function execute(paymentObject) {
                 title: paydockCredentials.payment_methods_alternative_payment_method_zip_title,
                 description: paydockCredentials.payment_methods_alternative_payment_method_zip_description,
                 config: {
-                    alternative_payment_methods_zippay_use_on_checkout: connection.alternative_payment_methods_zippay_use_on_checkout,
+                    alternative_payment_methods_zippay_use_on_checkout: isUseOnCheckout('zippay', connection, paydockCredentials, totalPrice),
                     alternative_payment_methods_zippay_gateway_id: connection.alternative_payment_methods_zippay_gateway_id,
                     alternative_payment_methods_zippay_fraud: connection.alternative_payment_methods_zippay_fraud,
                     alternative_payment_methods_zippay_direct_charge: connection.alternative_payment_methods_zippay_direct_charge,
@@ -167,7 +175,7 @@ async function execute(paymentObject) {
                 },
                 bank_accounts: {
                     payment_methods_bank_accounts_title: paydockCredentials.widget.payment_methods_bank_accounts_title,
-                    payment_methods_bank_accounts_description:  paydockCredentials.widget.payment_methods_bank_accounts_description,
+                    payment_methods_bank_accounts_description: paydockCredentials.widget.payment_methods_bank_accounts_description,
                 },
                 wallets: {
                     payment_methods_wallets_apple_pay_title: paydockCredentials.widget.payment_methods_wallets_apple_pay_title,
@@ -186,7 +194,7 @@ async function execute(paymentObject) {
                     payment_methods_alternative_payment_method_zip_description: paydockCredentials.widget.payment_methods_alternative_payment_method_zip_description
                 }
             },
-            widget_style:{
+            widget_style: {
                 widget_style_bg_color: paydockCredentials.widget.widget_style_bg_color,
                 widget_style_text_color: paydockCredentials.widget.widget_style_text_color,
                 widget_style_border_color: paydockCredentials.widget.widget_style_border_color,
@@ -203,6 +211,42 @@ async function execute(paymentObject) {
     const actions = []
     actions.push(createSetCustomFieldAction(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE, responseData));
     return {actions}
+}
+
+function isUseOnCheckout(paymentMethod, connection, paydockCredentials, totalPrice) {
+    const paymentMethods = {
+        'card': 'card',
+        'apple-pay': 'wallets_apple_pay',
+        'google-pay': 'wallets_google_pay',
+        'paypal': 'wallets_paypal',
+        'afterpay_v1': 'alternative_payment_method_afterpay_v1',
+        'zippay': 'alternative_payment_method_zippay'
+    };
+
+    const keysUseOnCheckout = {
+        'card': 'card',
+        'apple-pay': 'wallets_apple_pay',
+        'google-pay': 'wallets_google_pay',
+        'paypal': 'wallets_paypal_smart_button',
+        'afterpay_v1': 'alternative_payment_methods_afterpay_v1',
+        'zippay': 'alternative_payment_methods_zippay'
+    };
+    const keyUseOnCheckout = keysUseOnCheckout[paymentMethod];
+    const methodKey = paymentMethods[paymentMethod];
+    if (!methodKey || !paymentMethod) {
+        return 'No';
+    }
+
+    const methodConfig = {
+        useOnCheckout: connection[`${keyUseOnCheckout}_use_on_checkout`],
+        minValue: paydockCredentials.widget[`payment_methods_${methodKey}_min_value`],
+        maxValue: paydockCredentials.widget[`payment_methods_${methodKey}_max_value`]
+    };
+
+    totalPrice = Number(totalPrice);
+    const isWithinRange = (!methodConfig.minValue || totalPrice >= Number(methodConfig.minValue)) &&
+        (!methodConfig.maxValue || totalPrice <= Number(methodConfig.maxValue));
+    return methodConfig.useOnCheckout === 'Yes' && isWithinRange ? 'Yes' : 'No';
 }
 
 export default {execute}
