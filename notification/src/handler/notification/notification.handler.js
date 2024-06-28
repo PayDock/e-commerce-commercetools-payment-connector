@@ -63,29 +63,39 @@ async function processNotification(
 async function processWebhook(event, payment, notification, ctpClient) {
     const result = {}
     const {status, paymentStatus, orderStatus} = await getNewStatuses(notification)
+    let customStatus = status;
     const chargeId = notification._id
     const currentPayment = payment
     const currentVersion = payment.version
+    const updateActions = [{
+        action: 'setCustomField',
+        name: 'PaymentExtensionRequest',
+        value: JSON.stringify({
+            action: 'FromNotification',
+            request: {}
+        })
+    }];
+    if(status === 'paydock-paid'){
+        const capturedAmount = parseFloat(notification.transaction.amount) || 0
+        const orderAmount = calculateOrderAmount(payment);
+        customStatus = capturedAmount < orderAmount ? 'paydock-p-paid' : 'paydock-paid'
+        updateActions.push({
+            action: 'setCustomField',
+            name: 'CapturedAmount',
+            value: capturedAmount
+        })
+    }
+
 
     let operation = notification.type
     operation = operation ? operation.toLowerCase() : 'undefined'
     operation = operation.charAt(0).toUpperCase() + operation.slice(1)
+    updateActions.push( {
+        action: 'setCustomField',
+        name: 'PaydockPaymentStatus',
+        value: customStatus
+    })
 
-    const updateActions = [
-        {
-            action: 'setCustomField',
-            name: 'PaydockPaymentStatus',
-            value: status
-        },
-        {
-            action: 'setCustomField',
-            name: 'PaymentExtensionRequest',
-            value: JSON.stringify({
-                action: 'FromNotification',
-                request: {}
-            })
-        }
-    ]
     try {
         await ctpClient.update(ctpClient.builder.payments, currentPayment.id, currentVersion, updateActions)
         await updateOrderStatus(ctpClient, currentPayment.id, paymentStatus, orderStatus);
@@ -396,8 +406,8 @@ async function processRefundSuccessNotification(event, payment, notification, ct
         return {status: 'Success', message: ''}
     }
     const refundAmount = parseFloat(notification.transaction.amount) || 0
-    const orderAmount = calculateOrderAmount(payment);
-    let oldRefundAmount = parseFloat(payment?.custom?.fields?.RefundedAmount) || 0;
+    const orderAmount = parseFloat(payment?.custom?.fields?.CapturedAmount) || 0;
+    const oldRefundAmount = parseFloat(payment?.custom?.fields?.RefundedAmount) || 0;
     const notificationStatus = formatNotificationStatus(notification.status);
 
     if (['REFUNDED', 'REFUND_REQUESTED'].includes(notificationStatus.toUpperCase())) {
@@ -465,6 +475,7 @@ function calculateOrderAmount(payment){
     const fraction = payment.amountPlanned.type === 'centPrecision' ? Math.pow(10, payment.amountPlanned.fractionDigits) : 1;
     return payment.amountPlanned.centAmount / fraction;
 }
+
 function wasMerchantRefundedFromCommercetools(payment){
     const prevResponse = payment?.custom?.fields?.PaymentExtensionResponse;
     return prevResponse && JSON.parse(prevResponse)?.message === 'Merchant refunded money';
@@ -537,12 +548,12 @@ async function getNewStatuses(notification) {
         case 'COMPLETE':
             paydockPaymentStatus = 'paydock-paid'
             commerceToolsPaymentStatus = 'Paid'
-            orderPaymentStatus = 'Open'
+            orderPaymentStatus = 'Complete'
             break
         case 'PENDING':
         case 'PRE_AUTHENTICATION_PENDING':
             paydockPaymentStatus = notification.capture ? 'paydock-pending' : 'paydock-authorize'
-            commerceToolsPaymentStatus = 'Pending'
+            commerceToolsPaymentStatus = notification.capture ? 'Pending' : 'Paid'
             orderPaymentStatus = 'Open'
             break
         case 'CANCELLED':
@@ -553,7 +564,7 @@ async function getNewStatuses(notification) {
         case 'REFUNDED':
             paydockPaymentStatus = 'paydock-refunded'
             commerceToolsPaymentStatus = 'Paid'
-            orderPaymentStatus = 'Cancelled'
+            orderPaymentStatus = 'Complete'
             break
         case 'REQUESTED':
             paydockPaymentStatus = 'paydock-requested'
@@ -574,7 +585,6 @@ async function getNewStatuses(notification) {
 
     return {status: paydockPaymentStatus, paymentStatus: commerceToolsPaymentStatus, orderStatus: orderPaymentStatus}
 }
-
 
 async function callPaydock(url, data, method) {
     let returnedRequest

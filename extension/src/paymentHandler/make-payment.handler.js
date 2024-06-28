@@ -100,16 +100,19 @@ async function getCommercetoolsStatusesByPaydockStatus(paydockStatus) {
 
     switch (paydockStatus) {
         case c.STATUS_TYPES.PAID:
+        case c.STATUS_TYPES.P_PAID:
+        case c.STATUS_TYPES.REFUNDED:
+        case c.STATUS_TYPES.P_REFUND:
+            orderPaymentState = 'Paid'
+            orderState = 'Complete'
+            break
+        case c.STATUS_TYPES.AUTHORIZE:
             orderPaymentState = 'Paid'
             orderState = 'Open'
             break
         case c.STATUS_TYPES.CANCELLED:
         case c.STATUS_TYPES.FAILED:
             orderPaymentState = 'Failed'
-            orderState = 'Cancelled'
-            break
-        case c.STATUS_TYPES.REFUNDED:
-            orderPaymentState = 'Paid'
             orderState = 'Cancelled'
             break
         default:

@@ -27,6 +27,7 @@ export default {
     STATUS_TYPES: {
         AUTHORIZE: "paydock-authorize",
         PAID: "paydock-paid",
+        P_PAID: "paydock-p-paid",
         CANCELLED: "paydock-cancelled",
         REFUNDED: "paydock-refunded",
         P_REFUND: "paydock-p-refund",

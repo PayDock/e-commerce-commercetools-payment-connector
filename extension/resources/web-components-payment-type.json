@@ -60,6 +60,10 @@
           {
             "key": "paydock-received",
             "label": "Received via Paydock"
+          },
+          {
+            "key": "paydock-p-paid",
+            "label": "Partial paid via Paydock"
           }
         ]
       },
@@ -212,6 +216,17 @@
       "name": "RefundedAmount",
       "label": {
         "en": "Refunded amount"
+      },
+      "type": {
+        "name": "Number"
+      },
+      "required": false,
+      "inputHint": "SingleLine"
+    },
+    {
+      "name": "CapturedAmount",
+      "label": {
+        "en": "Captured amount"
       },
       "type": {
         "name": "Number"

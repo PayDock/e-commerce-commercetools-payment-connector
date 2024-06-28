@@ -83,16 +83,21 @@ async function processPaymentStatusChange(paymentObject, requestBodyJson) {
     let refundedAmount = 0;
     switch (newStatus) {
         case c.STATUS_TYPES.PAID:
+        case c.STATUS_TYPES.P_PAID:
             if (oldStatus === c.STATUS_TYPES.AUTHORIZE) {
-                responseAPI = await updatePaydockStatus(`/v1/charges/${chargeId}/capture`, 'post', {});
+                const capturedAmount = requestBodyJson.capturedAmount || 0;
+                responseAPI = await updatePaydockStatus(`/v1/charges/${chargeId}/capture`, 'post',{
+                    amount: capturedAmount,
+                    from_webhook: true
+                });
             } else {
                 error = "Charge not found or not in the desired state";
             }
             paymentStatus = 'Paid'
-            orderStatus = 'Open'
+            orderStatus = 'Complete'
             break;
         case c.STATUS_TYPES.CANCELLED:
-            if (oldStatus === c.STATUS_TYPES.AUTHORIZE || oldStatus === c.STATUS_TYPES.PAID) {
+            if([c.STATUS_TYPES.AUTHORIZE, c.STATUS_TYPES.PAID, c.STATUS_TYPES.P_PAID].includes(oldStatus)){
                 responseAPI = await updatePaydockStatus(`/v1/charges/${chargeId}/capture`, 'delete', {});
             } else {
                 error = "Charge not found or not in the desired state";
@@ -102,7 +107,7 @@ async function processPaymentStatusChange(paymentObject, requestBodyJson) {
             break;
         case c.STATUS_TYPES.REFUNDED:
         case c.STATUS_TYPES.P_REFUND:
-            if (oldStatus === c.STATUS_TYPES.P_REFUND || oldStatus === c.STATUS_TYPES.PAID) {
+            if ([c.STATUS_TYPES.P_REFUND, c.STATUS_TYPES.PAID, c.STATUS_TYPES.P_PAID].includes(oldStatus)) {
                 const oldRefundedAmount = paymentObject?.custom?.fields?.RefundedAmount || 0;
                 refundedAmount = oldRefundedAmount + requestBodyJson.refundAmount;
                 responseAPI = await updatePaydockStatus(`/v1/charges/${chargeId}/refunds`, 'post', {
@@ -113,7 +118,7 @@ async function processPaymentStatusChange(paymentObject, requestBodyJson) {
                 error = "Charge not found or not in the desired state";
             }
             paymentStatus = 'Paid'
-            orderStatus = 'Cancelled'
+            orderStatus = 'Complete'
             break;
         default:
             error = `Unsupported status change from ${oldStatus} to ${newStatus}`;
