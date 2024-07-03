@@ -446,7 +446,7 @@ async function processRefundSuccessNotification(event, payment, notification, ct
 
         try {
             await ctpClient.update(ctpClient.builder.payments, currentPayment.id, currentVersion, updateActions)
-            await updateOrderStatus(ctpClient, currentPayment.id, 'Paid', 'Cancelled');
+            await updateOrderStatus(ctpClient, currentPayment.id, 'Paid', 'Complete');
 
             result.status = 'Success'
             result.message = `Refunded ${refunded}`
@@ -558,7 +558,7 @@ async function getNewStatuses(notification) {
             break
         case 'CANCELLED':
             paydockPaymentStatus = 'paydock-cancelled'
-            commerceToolsPaymentStatus = 'Failed'
+            commerceToolsPaymentStatus = 'Paid'
             orderPaymentStatus = 'Cancelled'
             break
         case 'REFUNDED':

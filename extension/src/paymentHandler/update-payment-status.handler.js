@@ -102,7 +102,7 @@ async function processPaymentStatusChange(paymentObject, requestBodyJson) {
             } else {
                 error = "Charge not found or not in the desired state";
             }
-            paymentStatus = 'Failed'
+            paymentStatus = 'Paid'
             orderStatus = 'Cancelled'
             break;
         case c.STATUS_TYPES.REFUNDED:
