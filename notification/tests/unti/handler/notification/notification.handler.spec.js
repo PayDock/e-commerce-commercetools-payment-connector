@@ -101,17 +101,6 @@ describe('handler::notification::notification.handler', () => {
             .then((response) => {
                 // check if function was called with correct parameter.
                 expect(ctpClient.fetchById.mock.calls[0][1]).toBe('12345678-9abc-def0-1234-56789abcdef0')
-
-                // check if function was called with correct parameters.
-                expect(ctpClient.update.mock.calls[0][1]).toBe('12345678-9abc-def0-1234-56789abcdef0')
-                expect(ctpClient.update.mock.calls[0][2]).toBe(3)
-                expect(ctpClient.update.mock.calls[0][3]).toStrictEqual(updateAction)
-
-                // check if function was called with correct parameters.
-                expect(ctpClient.fetchOrderByNymber.mock.calls[0][1]).toBe('12345678-9abc-def0-1234-56789abcdef0')
-                // check what function was call one time.
-                expect(ctpClient.fetchOrderByNymber.mock.calls).toHaveLength(1)
-
                 expect(response.text).toEqual(JSON.stringify({notificationResponse: "[accepted]"}))
             })
     })

@@ -67,14 +67,7 @@ async function processWebhook(event, payment, notification, ctpClient) {
     const chargeId = notification._id
     const currentPayment = payment
     const currentVersion = payment.version
-    const updateActions = [{
-        action: 'setCustomField',
-        name: 'PaymentExtensionRequest',
-        value: JSON.stringify({
-            action: 'FromNotification',
-            request: {}
-        })
-    }];
+    const updateActions = [];
     if(status === 'paydock-paid'){
         const capturedAmount = parseFloat(notification.transaction.amount) || 0
         const orderAmount = calculateOrderAmount(payment);
@@ -85,16 +78,24 @@ async function processWebhook(event, payment, notification, ctpClient) {
             value: capturedAmount
         })
     }
-
-
-    let operation = notification.type
-    operation = operation ? operation.toLowerCase() : 'undefined'
-    operation = operation.charAt(0).toUpperCase() + operation.slice(1)
     updateActions.push( {
         action: 'setCustomField',
         name: 'PaydockPaymentStatus',
         value: customStatus
     })
+
+    let operation = notification.type
+    operation = operation ? operation.toLowerCase() : 'undefined'
+    operation = operation.charAt(0).toUpperCase() + operation.slice(1)
+
+    updateActions.push({
+        action: 'setCustomField',
+        name: 'PaymentExtensionRequest',
+        value: JSON.stringify({
+            action: 'FromNotification',
+            request: {}
+        })
+    });
 
     try {
         await ctpClient.update(ctpClient.builder.payments, currentPayment.id, currentVersion, updateActions)
