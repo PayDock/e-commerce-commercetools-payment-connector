@@ -1,7 +1,7 @@
 export default {
     "roots": [
         "<rootDir>/src",
-        "<rootDir>/tests/unit"
+        "<rootDir>/tests"
     ],
     transformIgnorePatterns:
         [
@@ -9,6 +9,6 @@ export default {
         ],
     displayName: 'Tests Javascript Application - Paydock Extension',
     moduleDirectories: ['node_modules', 'src'],
-    testMatch: ['**/tests/unit/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
+    testMatch: ['**/tests/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
     testEnvironment: 'node',
 };
