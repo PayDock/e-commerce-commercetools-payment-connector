@@ -212,7 +212,7 @@ class CommerceToolsAPIAdapter {
       const paymentsArray = [];
       const payments = await this.makeRequest('/payments?where=' + encodeURIComponent('paymentMethodInfo(method="paydock-pay") and custom(fields(AdditionalInformation is not empty))') + '&sort=createdAt+desc&limit=500');
       await this.collectArrayPayments(payments, paymentsArray);
-      if(paymentsArray.length) {
+      if(paymentsArray) {
         let orderQuery = '"' + Object.keys(paymentsArray).join('","') + '"';
         const orders = await this.makeRequest('/orders?where=' + encodeURIComponent('paymentInfo(payments(id in(' + orderQuery + ')))') + '&sort=createdAt+desc&limit=500');
         await this.collectArrayOrders(orders, paymentsArray, paydockOrders);
