@@ -15,7 +15,7 @@
 ## How It Works
 
 ### Step 1: Configuration connector
-To set up the connector, install and integrate the [Commercetools Paydock Custom Application](https://github.com/PayDock/e-commerce-commercetools-app) into your commercetools platform. This application allows you to configure both live and sandbox connections to Paydock. Additionally, you can view logs and orders processed through the Paydock payment system.
+To set up the connector, install and integrate the [Commercetools Paydock Custom Application](../merchant-center-custom-application/docs/IntegrationGuide.md) into your commercetools platform. This application allows you to configure both live and sandbox connections to Paydock. Additionally, you can view logs and orders processed through the Paydock payment system.
 ![Custom Application Screenshot](custom-aplication-img.png)
 
 

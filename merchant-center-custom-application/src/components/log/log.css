@@ -1,0 +1,140 @@
+.table-wrap {
+    box-shadow:rgba(0, 0, 0, 0.05) 0px 1px 5px 0px;
+    border: 1px solid rgb(240, 241, 245);
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+.table-logs thead {
+    background-color: rgb(249, 249, 251);
+}
+.table-logs thead:hover th:not(:last-child):before {
+    content: '';
+    position: absolute;
+    border-right: 1px solid rgb(195, 197, 213);
+    top: 8px;
+    right: 0;
+    bottom: 8px;
+}
+.table-logs th {
+    background-color: rgb(249, 249, 251);
+    color: rgb(84, 89, 120);
+    font-family: Inter, system-ui;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: left;
+    padding: 0 24px;
+    margin: 8px 0;
+    height: 42px;
+    border-bottom: 1px solid rgb(240, 241, 245);
+    position: relative;
+}
+.table-logs {
+    border-collapse: collapse;
+    width: 100%;
+}
+.table-logs td {
+    color: rgb(26, 26, 26);
+    font-family: Inter, system-ui;
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+    padding: 8px 24px;
+    margin: 8px 0;
+    min-height: 36px;
+    border-bottom: 1px solid rgb(240, 241, 245);
+}
+.table-logs td.status span {
+    padding: 8px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    min-width: 160px;
+    color: rgba(0, 0, 0, 0.58);
+    text-align: center;
+}
+.table-logs .UnfulfilledCondition span {
+    background-color: rgba(2241, 233, 161, 0.58);
+}
+.table-logs .Completed span {
+    background-color: rgba(161, 241, 165, 0.58);
+}
+.table-logs .Rejected span {
+    background-color: rgba(241, 161, 161, 0.58);
+}
+.table-logs th.status,
+.table-logs th.operation,
+.table-logs th.date,
+.table-logs th.operation_id,
+.table-logs th.id {
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.table-logs th span.sort-default {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    margin-left: 5px;
+}
+
+.table-logs th:hover span.sort-default {
+    transform: rotate(180deg);
+}
+
+.table-logs .authorized-via-paydock span,
+.table-logs .partial-refunded-via-paydock span,
+.table-logs .fraud-service-not-found span,
+.table-logs .pending span,
+.table-logs .pending-via-paydock span,
+.table-logs .authorized span,
+.table-logs .requested-via-paydock span {
+    background-color: #FDEEE3;
+    color: #B55015;
+}
+.table-logs .received span,
+.table-logs .refund-via-paydock span,
+.table-logs .canceled-via-paydock span,
+.table-logs .canceled-authorize-via-paydock span,
+.table-logs .paid-via-paydock span {
+    background-color: #CEF6F3;
+    color: #1D635D;
+}
+
+.table-logs .fail span,
+.table-logs .fail-via-paydock span,
+.table-logs .cancel span {
+    background-color: rgba(241, 161, 161, 0.58);
+}
+
+
+@media (min-width: 1160px) {
+    .table-logs .status {
+        text-align: center;
+    }
+    .table-logs .date {
+        width: 15%;
+    }
+    .table-logs .operation {
+        width: 15%;
+    }
+    .table-logs .status {
+        width: 20%;
+    }
+    .table-logs .message {
+        width: 30%;
+    }
+}
+@media (max-width: 1159px) {
+    .table-logs td {
+        display: block;
+        width: 100%;
+        border-bottom: none;
+    }
+    .table-logs th {
+        display: none;
+    }
+    .table-logs tbody tr {
+        border-bottom: 1px solid rgb(240, 241, 245);
+    }
+    .table-logs .status {
+        text-align: left;
+    }
+}

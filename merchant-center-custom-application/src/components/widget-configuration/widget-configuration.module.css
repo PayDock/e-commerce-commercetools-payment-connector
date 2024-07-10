@@ -1,0 +1,20 @@
+.paySettingsHead {
+    border-bottom: 1px solid #8F9496;
+    margin-bottom: 30px;
+}
+.paySettingsButtonWrap {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+.paySettingsButtonWrap button {
+    margin-left: 25px;
+}
+.paySettingsButtonWrap > div {
+    margin-bottom: 30px;
+    margin-left: 25px;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+}

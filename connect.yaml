@@ -1,4 +1,30 @@
 deployAs:
+  - name: merchant-center-custom-application
+    applicationType: merchant-center-custom-application
+    configuration:
+      standardConfiguration:
+        - key: CUSTOM_APPLICATION_ID
+          description: The Custom Application ID
+          required: true
+        - key: CLOUD_IDENTIFIER
+          description: The cloud identifier
+          default: 'gcp-eu'
+        - key: ENTRY_POINT_URI_PATH
+          description: The Application entry point URI path
+          required: true
+        - key: APP_CLIENT_ID
+          description: The commercetools client Id
+          required: true
+        - key: APP_CLIENT_SECRET
+          description:  The commercetools client secret
+          required: true
+        - key: APP_PROJECT_KEY
+          description:  The commercetools project key
+          required: true
+        - key: APP_REGION
+          description: The commercetools region
+          default: 'europe-west1.gcp'
+          required: true
   - name: extension
     applicationType: service
     endpoint: /
@@ -12,10 +38,8 @@ deployAs:
     applicationType: service
     endpoint: /
     scripts:
-      postDeploy: npm install
+      postDeploy: npm install && npm run setup-resources
     configuration:
       securedConfiguration:
         - key: PAYDOCK_INTEGRATION_CONFIG
           description: Escaped JSON object
-      
-  

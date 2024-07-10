@@ -1,0 +1,53 @@
+.css-1aewiep-control,
+.css-ot8y6u-control {
+    padding-top: 0!important;
+    padding-bottom: 0!important;
+}
+form {
+    width: 960px;
+    max-width: 100%;
+    margin: 0 auto 50px;
+}
+.collapsible-panel > div:first-child * {
+    font-size: 24px;
+    font-weight: 600;
+}
+.collapsible-panel > div:first-child [class*="HeaderIcon"] svg {
+    width: 20px;
+    height: 20px;
+}
+
+form [for*="select-field"] > div,
+form [for*="text-field"] > div {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.collapsible-panel [aria-expanded="true"] + div {
+    margin-bottom: 50px;
+}
+
+.collapsible-panel .collapsible-panel [aria-expanded="true"] + div {
+    margin-bottom: 30px;
+}
+
+.collapsible-panel .collapsible-panel:last-child [aria-expanded="false"] + div {
+    margin-bottom: 0;
+}
+
+.collapsible-panel .collapsible-panel {
+    margin-top: -32px;
+}
+
+.collapsible-panel .collapsible-panel > div:first-child * {
+    font-size: 22px;
+    font-weight: 500;
+}
+.collapsible-panel .collapsible-panel > div:first-child [class*="HeaderIcon"] svg {
+    width: 18px;
+    height: 18px;
+}
+textarea {
+    min-height: 370px!important;
+    height: auto!important;
+}

@@ -1,0 +1,246 @@
+.table-wrap {
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 5px 0px;
+    border: 1px solid rgb(240, 241, 245);
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.table-orders thead {
+    background-color: rgb(249, 249, 251);
+}
+
+.billing_information, .shipping_information{
+    min-width: 210px;
+}
+
+.table-orders thead:hover th:not(:last-child):before {
+    content: '';
+    position: absolute;
+    border-right: 1px solid rgb(195, 197, 213);
+    top: 8px;
+    right: 0;
+    bottom: 8px;
+}
+
+.table-orders th {
+    background-color: rgb(249, 249, 251);
+    color: rgb(84, 89, 120);
+    font-family: Inter, system-ui;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: left;
+    padding: 0 12px;
+    margin: 8px 0;
+    height: 42px;
+    border-bottom: 1px solid rgb(240, 241, 245);
+    position: relative;
+}
+
+.table-orders {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.table-orders td {
+    color: rgb(26, 26, 26);
+    font-family: Inter, system-ui;
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+    padding: 8px 12px;
+    margin: 8px 0;
+    min-height: 36px;
+    border-bottom: 1px solid rgb(240, 241, 245);
+}
+
+.table-orders td.status span:not(.mobile-label) {
+    padding: 8px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    min-width: 160px;
+    color: rgba(0, 0, 0, 0.58);
+    text-align: center;
+}
+
+.table-orders a {
+    text-decoration: underline;
+    color: #23766f;
+}
+
+.table-orders a:hover {
+    text-decoration: none;
+}
+.table-orders .amount .refund {
+    color: #fa0000;
+}
+
+.table-orders .amount .captured-amount {
+    color: #1D635D;
+}
+
+.table-orders .paydock-authorize span,
+.table-orders .paydock-p-refund span,
+.table-orders .paydock-pending span,
+.table-orders .paydock-requested span {
+    background-color: #FDEEE3;
+    color: #B55015;
+}
+.table-orders .paydock-received span,
+.table-orders .paydock-refunded span,
+.table-orders .paydock-cancelled span,
+.table-orders .paydock-p-paid span,
+.table-orders .paydock-paid span {
+    background-color: #CEF6F3;
+    color: #1D635D;
+}
+.table-orders .paydock-failed span {
+    background-color: rgba(241, 161, 161, 0.58);
+}
+.refund-base-amount{
+    text-decoration:line-through;
+    padding-right: 5px;
+}
+.table-orders .action button:not(:last-child) {
+    margin-right: 15px;
+}
+
+.table-orders [data-track-component="SecondaryButton"] {
+    background-color: #fa0000;
+    color: #fff;
+    border: none;
+}
+.table-orders [data-track-component="SecondaryButton"]:hover {
+    background-color: #e80000;
+}
+.table-orders [data-track-component="PrimaryButton"] {
+    background-color: #2C837C;
+}
+.table-orders [data-track-component="PrimaryButton"]:hover {
+    background-color: #32948c;
+}
+.table-orders .action > * {
+    margin-bottom: 5px;
+}
+.table-orders .action button {
+    margin: 5px 15px 5px 0!important;
+}
+.table-orders .mobile-label {
+    background-color: transparent!important;
+}
+
+.table-orders .error-notification,
+.table-orders .success-notification {
+    width: 100%;
+    margin: 0;
+}
+.table-orders .error-notification > div,
+.table-orders .success-notification > div {
+    display: flex;
+    align-items: center;
+}
+.table-orders .error-notification div,
+.table-orders .success-notification div {
+    width: auto;
+    margin: 0;
+}
+.table-orders .transaction {
+    word-break: break-all;
+    width: 10%;
+}
+.table-orders .name {
+    width: 10%;
+}
+.table-orders .action-wrapper {
+    margin: 0;
+    width: 100%;
+}
+.table-orders th.id,
+.table-orders th.paydock_transaction,
+.table-orders th.billing_information,
+.table-orders th.shipping_information,
+.table-orders th.name,
+.table-orders th.amount,
+.table-orders th.currency,
+.table-orders th.payment_source_type,
+.table-orders th.created_at,
+.table-orders th.updated_at,
+.table-orders th.status {
+    cursor: pointer;
+}
+
+.table-orders th span.sort-default {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    margin-left: 5px;
+}
+
+.table-orders th:hover span.sort-default {
+    transform: rotate(180deg);
+}
+
+@media (min-width: 1920px) {
+    .table-orders .date {
+        width: 15%;
+    }
+
+    .table-orders .status {
+        width: 20%;
+        text-align: center;
+    }
+    .table-orders .payment-source {
+        width: 10%;
+    }
+
+    .table-orders .action {
+        width: 25%;
+    }
+    .table-orders .mobile-label {
+        display: none!important;
+    }
+    .table-orders .action input {
+        margin-bottom: 5px;
+    }
+}
+
+@media (max-width: 1919px) {
+    .table-orders .action-wrapper {
+        display: flex;
+        align-items: baseline;
+    }
+    .table-orders td.status .mobile-label {
+        padding: 0;
+        min-width: auto;
+        color: inherit;
+    }
+    .table-orders td {
+        display: block;
+        width: 100%!important;
+        border-bottom: none;
+    }
+    .table-orders td.amount {
+        display: flex;
+    }
+
+    .table-orders th {
+        display: none;
+    }
+
+    .table-orders tbody tr {
+        border-bottom: 1px solid rgb(240, 241, 245);
+    }
+
+    .table-orders .status {
+        text-align: left;
+    }
+    .table-orders .mobile-label {
+        font-weight: 600;
+        margin-right: 10px;
+    }
+    .action div {
+        display: inline-block;
+    }
+}
+.action div {
+    width: 100px;
+    margin-right: 15px;
+}
