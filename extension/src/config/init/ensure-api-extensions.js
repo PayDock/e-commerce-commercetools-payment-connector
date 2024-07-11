@@ -42,12 +42,9 @@ async function ensureApiExtensions(
         ctpClient,
         apiExtensionOrderTemplate.key,
     )
-    const existingExtensionOrderPB = await fetchExtensionByKey(
-        ctpClient,
-        'powerboard-order-extension'
-    )
 
-    if (existingExtensionOrder === null && existingExtensionOrderPB === null) {
+
+    if (existingExtensionOrder === null) {
       await ctpClient.create(ctpClient.builder.extensions, extensionOrderDraft)
     }
 
