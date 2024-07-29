@@ -563,7 +563,7 @@ const OrdersHistory = () => {
                                                                 { updateAmountCaptured[d.order_number] ? (
                                                                 <PrimaryButton
                                                                     label="Refund"
-                                                                    onClick={() => handleOrderAction('submit-refund', d.order_number, d.captured_amount, d.refund_amount)}
+                                                                    onClick={() => handleOrderAction('submit-refund', d.order_number, updateAmountCaptured[d.order_number], d.refund_amount)}
                                                                     isDisabled={
                                                                         (typedAmountRefund[d.order_number] <= 0 ||
                                                                             typedAmountRefund[d.order_number] > updateAmountCaptured[d.order_number] ||
