@@ -560,15 +560,28 @@ const OrdersHistory = () => {
                                                                     name="amount-refund"
                                                                     isRequired={true}
                                                                 />
+                                                                { updateAmountCaptured[d.order_number] ? (
                                                                 <PrimaryButton
                                                                     label="Refund"
                                                                     onClick={() => handleOrderAction('submit-refund', d.order_number, d.captured_amount, d.refund_amount)}
                                                                     isDisabled={
                                                                         (typedAmountRefund[d.order_number] <= 0 ||
-                                                                            typedAmountRefund[d.order_number] > d.captured_amount ||
-                                                                            (typedAmountRefund[d.order_number] > (updateAmountRefund[d.order_number] !== undefined ? d.captured_amount - updateAmountRefund[d.order_number] : d.captured_amount - d.refund_amount))) ? true : false
+                                                                            typedAmountRefund[d.order_number] > updateAmountCaptured[d.order_number] ||
+                                                                            (typedAmountRefund[d.order_number] > (updateAmountRefund[d.order_number] !== undefined ? updateAmountCaptured[d.order_number] - updateAmountRefund[d.order_number] : updateAmountCaptured[d.order_number] - d.refund_amount))) ? true : false
                                                                     }
                                                                 />
+                                                                    ) :
+                                                                    (
+                                                                        <PrimaryButton
+                                                                            label="Refund"
+                                                                            onClick={() => handleOrderAction('submit-refund', d.order_number, d.captured_amount, d.refund_amount)}
+                                                                            isDisabled={
+                                                                                (typedAmountRefund[d.order_number] <= 0 ||
+                                                                                    typedAmountRefund[d.order_number] > d.captured_amount ||
+                                                                                    (typedAmountRefund[d.order_number] > (updateAmountRefund[d.order_number] !== undefined ? d.captured_amount - updateAmountRefund[d.order_number] : d.captured_amount - d.refund_amount))) ? true : false
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 <SecondaryButton
                                                                     label="Cancel Charge"
                                                                     onClick={() => handleOrderAction('cancel-refund', d.order_number)}
