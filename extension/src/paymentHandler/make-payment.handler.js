@@ -10,10 +10,12 @@ async function execute(paymentObject) {
     const makePaymentRequestObj = JSON.parse(
         paymentObject.custom.fields.makePaymentRequest,
     )
+    let capturedAmount = paymentObject.amountPlanned.centAmount;
 
     if (paymentObject.amountPlanned.type === 'centPrecision') {
         const fraction = 10 ** paymentObject.amountPlanned.fractionDigits;
-        makePaymentRequestObj.amount.value = paymentObject.amountPlanned.centAmount / fraction;
+        capturedAmount = paymentObject.amountPlanned.centAmount / fraction;
+        makePaymentRequestObj.amount.value = capturedAmount;
     }
     let paymentActions = [];
     const actions = []
@@ -84,6 +86,10 @@ async function execute(paymentObject) {
             orderPaymentStatus: orderPaymentState,
             orderStatus: orderState
         })));
+        if (paydockStatus === c.STATUS_TYPES.PAID) {
+            actions.push(createSetCustomFieldAction('CapturedAmount', capturedAmount));
+        }
+
     } else {
         customFieldsToDelete.push(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE)
     }

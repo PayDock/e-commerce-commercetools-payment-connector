@@ -473,7 +473,7 @@ const OrdersHistory = () => {
                                             {Math.round((d.captured_amount - d.refund_amount) * 100) / 100}<br/>
                                             <span className="refund">
                                                 <RefundIcon/>
-                                                &nbsp;{d.captured_amount}
+                                                &nbsp;{d.refund_amount}
                                             </span>
                                         </>
                                     )) : (
