@@ -5,7 +5,6 @@ import {addPaydockLog} from '../../utils/logger.js'
 import ctp from '../../utils/ctp.js'
 import customObjectsUtils from '../../utils/custom-objects-utils.js'
 import {callPaydock} from './paydock-api-service.js';
-import fetch from "node-fetch";
 
 async function processNotification(
     notificationResponse
@@ -185,8 +184,9 @@ async function processFraudNotificationComplete(event, payment, notification, ct
     }
 
     if (cacheData._3ds) {
-
-        const attachResponse = await cardFraudAttach({fraudChargeId, updatedChargeId})
+        const attachResponse =  await createCharge({
+            fraud_charge_id: fraudChargeId
+        }, {action: 'standalone-fraud-attach', updatedChargeId}, true)
         if (attachResponse?.error) {
             result.status = 'UnfulfilledCondition'
             result.message = `Can't fraud attach.${errorMessageToString(attachResponse)}`
@@ -521,14 +521,6 @@ async function getPaymentByMerchantReference(
             `Error: ${JSON.stringify(serializeError(err))}`
         throw new VError(err, errMsg)
     }
-}
-
-async function cardFraudAttach({fraudChargeId, chargeId}) {
-    const request = {
-        fraud_charge_id: fraudChargeId
-    }
-
-    return await createCharge(request, {action: 'standalone-fraud-attach', chargeId}, true)
 }
 
 
