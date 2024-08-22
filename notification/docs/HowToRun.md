@@ -36,15 +36,14 @@ cd e-commerce-commercetools-payment-connector
 Navigate to the notification directory and set up the environment variables:
 
 ```
-echo 'PAYDOCK_INTEGRATION_CONFIG={
-   "clientId":"[YOUR_CLIENT_ID]",
-   "clientSecret":"[YOUR_CLIENT_SECRET]",
-   "projectKey":"[YOUR_PROJECT_KEY]",
-   "apiUrl":"https://api.[REGION_ID].gcp.commercetools.com",
-   "authUrl":"https://auth.[REGION_ID].gcp.commercetools.com",
-   "paydockLiveUrl": "[API_PAYDOCK_URL]",
-   "paydockSandboxUrl":"[API_PAYDOCK_SANDBOX_URL]",
-   "notificationBaseUrl": "[EXTENSION_BASE_URL]"
+echo 'COMMERCETOOLS_CLIENT_ID = [COMMERCETOOLS_CLIENT_ID]
+   COMMERCETOOLS_CLIENT_SECRET = [COMMERCETOOLS_CLIENT_SECRET]
+   COMMERCETOOLS_PROJECT_KEY = [COMMERCETOOLS_PROJECT_KEY]
+   COMMERCETOOLS_API_URL = [COMMERCETOOLS_API_URL]
+   COMMERCETOOLS_AUTH_URL = [COMMERCETOOLS_AUTH_URL]
+   PAYDOCK_API_LIVE_URL = [PAYDOCK_API_LIVE_URL]
+   PAYDOCK_API_SANDBOX_URL = [PAYDOCK_API_SANDBOX_URL]
+   NOTIFICATION_BASE_URL = [NOTIFICATION_BASE_URL]
 }' > ./notification/.env
 ```
 
@@ -58,7 +57,7 @@ Build the following docker images:
 
 5. Launch the Docker container with the following command:
 
-- `docker run -e PAYDOCK_INTEGRATION_CONFIG=xxxxxx -p 8443:8443 commercetools-payment-connector-notification`
+- `docker run -e  COMMERCETOOLS_CLIENT_ID=**** COMMERCETOOLS_CLIENT_SECRET=**** COMMERCETOOLS_PROJECT_KEY=**** COMMERCETOOLS_API_URL=**** COMMERCETOOLS_AUTH_URL=*** PAYDOCK_API_LIVE_URL=**** PAYDOCK_API_SANDBOX_URL=**** NOTIFICATION_BASE_URL=****  -p 8443:8443 commercetools-payment-connector-notification`
 
 6. Replace the placeholder `xxxxxx` for PAYDOCK_INTEGRATION_CONFIG variable  with your Json-escapes string.
 ###
@@ -90,15 +89,14 @@ cd e-commerce-commercetools-payment-connector
 Navigate to the notification directory and set up the environment variables.
 
 ```
-echo 'PAYDOCK_INTEGRATION_CONFIG={
-   "clientId":"[YOUR_CLIENT_ID]",
-   "clientSecret":"[YOUR_CLIENT_SECRET]",
-   "projectKey":"[YOUR_PROJECT_KEY]",
-   "apiUrl":"https://api.[REGION_ID].gcp.commercetools.com",
-   "authUrl":"https://auth.[REGION_ID].gcp.commercetools.com",
-   "paydockLiveUrl": "[API_PAYDOCK_URL]",
-   "paydockSandboxUrl":"[API_PAYDOCK_SANDBOX_URL]",
-   "notificationBaseUrl": "[EXTENSION_BASE_URL]"
+echo 'COMMERCETOOLS_CLIENT_ID = [COMMERCETOOLS_CLIENT_ID]
+   COMMERCETOOLS_CLIENT_SECRET = [COMMERCETOOLS_CLIENT_SECRET]
+   COMMERCETOOLS_PROJECT_KEY = [COMMERCETOOLS_PROJECT_KEY]
+   COMMERCETOOLS_API_URL = [COMMERCETOOLS_API_URL]
+   COMMERCETOOLS_AUTH_URL = [COMMERCETOOLS_AUTH_URL]
+   PAYDOCK_API_LIVE_URL = [PAYDOCK_API_LIVE_URL]
+   PAYDOCK_API_SANDBOX_URL = [PAYDOCK_API_SANDBOX_URL]
+   NOTIFICATION_BASE_URL = [NOTIFICATION_BASE_URL]
 }' > ./notification/.env
 ```
 
@@ -107,7 +105,7 @@ Replace the placeholder values with your Commercetools API credentials.
 
 4. Build the docker images and run the application.
 
-* Replace the placeholder `xxxxxx` for PAYDOCK_INTEGRATION_CONFIG variable in **./docker-compose.yml** with your Json-escapes string.
+* Replace the placeholders `xxxxxx` for  variables in **./docker-compose.yml**.
 
 
 * Launch docker-compose. The docker images will be built automatically:

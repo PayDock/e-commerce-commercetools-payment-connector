@@ -12,34 +12,81 @@ deployAs:
         - key: ENTRY_POINT_URI_PATH
           description: The Application entry point URI path
           required: true
+        - key: APP_REGION
+          description: The commercetools region
+          default: 'europe-west1.gcp'
+          required: true
+        - key: APP_PROJECT_KEY
+          description:  The commercetools project key
+          required: true
+      securedConfiguration:
         - key: APP_CLIENT_ID
           description: The commercetools client Id
           required: true
         - key: APP_CLIENT_SECRET
           description:  The commercetools client secret
           required: true
-        - key: APP_PROJECT_KEY
-          description:  The commercetools project key
-          required: true
-        - key: APP_REGION
-          description: The commercetools region
-          default: 'europe-west1.gcp'
-          required: true
   - name: extension
     applicationType: service
     endpoint: /
     scripts:
-      postDeploy: npm install && npm run setup-resources
+      postDeploy: npm install && npm run extension:post-deploy
+      preUndeploy: npm install && npm run extension:pre-undeploy
     configuration:
       securedConfiguration:
-        - key: PAYDOCK_INTEGRATION_CONFIG
-          description: Escaped JSON object
+        - key: COMMERCETOOLS_CLIENT_ID
+          description: The commercetools client Id
+          required: true
+        - key: COMMERCETOOLS_CLIENT_SECRET
+          description:  The commercetools client secret
+          required: true
+      standardConfiguration:
+        - key: COMMERCETOOLS_PROJECT_KEY
+          description:  The commercetools project key
+          required: true
+        - key: COMMERCETOOLS_API_URL
+          description: The commercetolos api url
+          default: https://api.europe-west1.gcp.commercetools.com
+          required: true
+        - key: COMMERCETOOLS_AUTH_URL
+          description: The commercetolos auth url
+          default: https://auth.europe-west1.gcp.commercetools.com
+        - key: PAYDOCK_API_LIVE_URL
+          description: Paydock api live url
+        - key: PAYDOCK_API_SANDBOX_URL
+          description: Paydock api sandbox url
+        - key: EXTENSION_BASE_URL
+          description: The extension URI path
+          required: false
   - name: notification
     applicationType: service
     endpoint: /
     scripts:
-      postDeploy: npm install && npm run setup-resources
+      postDeploy: npm install && npm run notification:post-deploy
+      preUndeploy: npm install && npm run notification:pre-undeploy
     configuration:
       securedConfiguration:
-        - key: PAYDOCK_INTEGRATION_CONFIG
-          description: Escaped JSON object
+        - key: COMMERCETOOLS_CLIENT_ID
+          description: The commercetools client Id
+          required: true
+        - key: COMMERCETOOLS_CLIENT_SECRET
+          description:  The commercetools client secret
+          required: true
+      standardConfiguration:
+        - key: COMMERCETOOLS_PROJECT_KEY
+          description:  The commercetools project key
+          required: true
+        - key: COMMERCETOOLS_API_URL
+          description: The commercetolos api url
+          default: https://api.europe-west1.gcp.commercetools.com
+          required: true
+        - key: COMMERCETOOLS_AUTH_URL
+          description: The commercetolos auth url
+          default: https://auth.europe-west1.gcp.commercetools.com
+        - key: PAYDOCK_API_LIVE_URL
+          description: Paydock api live url
+        - key: PAYDOCK_API_SANDBOX_URL
+          description: Paydock api sandbox url
+        - key: NOTIFICATION_BASE_URL
+          description: The notification URI path
+          required: false

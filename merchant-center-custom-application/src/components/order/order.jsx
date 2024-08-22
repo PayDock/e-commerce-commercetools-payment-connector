@@ -4,7 +4,6 @@ import {Pagination} from '@commercetools-uikit/pagination';
 import messages from './messages';
 import styles from './log.module.css';
 import './order.css';
-import axios from 'axios';
 import moment from 'moment';
 import PrimaryButton from '@commercetools-uikit/primary-button';
 import SecondaryButton from '@commercetools-uikit/secondary-button';
@@ -346,11 +345,18 @@ const OrdersHistory = () => {
     const lastRowIndex = page * perPage;
     const firstRowIndex = lastRowIndex - perPage;
 
-    useEffect(async () => {
-        // Виконання запиту до сервера
-        let orders = await apiAdapter.getOrders();
-            setRows(orders);
-        setCurrentRows(rows.slice(firstRowIndex, lastRowIndex));
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                let orders = await apiAdapter.getOrders();
+                setRows(orders);
+                setCurrentRows(rows.slice(firstRowIndex, lastRowIndex));
+            } catch (error) {
+                setError({ message: `Error: ${error.message}` });
+            }
+        };
+
+        fetchOrders();
     }, []);
 
     useEffect(() => {
@@ -440,7 +446,7 @@ const OrdersHistory = () => {
                                     changeStatus[d.order_number] === 'paydock-p-paid' ? (
                                         <>
                                             <span className="refund-base-amount">{d.amount}</span>
-                                            {d.amount - updateAmountCaptured[d.order_number]}<br/>
+                                            {Math.round((d.amount - updateAmountCaptured[d.order_number]) * 100) / 100}<br/>
                                             <span className="captured-amount">
                                                 <CapturedIcon/>
                                                 &nbsp;{updateAmountCaptured[d.order_number]}
@@ -449,7 +455,7 @@ const OrdersHistory = () => {
                                     ) : (
                                         <>
                                             <span className="refund-base-amount">{d.amount}</span>
-                                            {d.amount - updateAmountRefund[d.order_number]}<br/>
+                                            {Math.round((d.amount - updateAmountRefund[d.order_number]) * 100) / 100}<br/>
                                             <span className="refund">
                                                 <RefundIcon/>
                                                 &nbsp;{updateAmountRefund[d.order_number]}

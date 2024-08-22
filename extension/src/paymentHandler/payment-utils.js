@@ -1,4 +1,3 @@
-import c from '../config/constants.js'
 
 function createSetCustomFieldAction(name, response) {
     if(typeof response === 'object'){
@@ -17,35 +16,6 @@ function deleteCustomFieldAction(name) {
         name,
         value: null
     }
-}
-function getPaydockStatus(paymentMethod, responseBodyJson) {
-    let paydockStatus;
-    switch (paymentMethod) {
-        case 'bank_account':
-            paydockStatus = responseBodyJson.status === 'requested' ? c.STATUS_TYPES.REQUESTED : c.STATUS_TYPES.FAILED;
-            break;
-        case 'cart':
-            if (responseBodyJson.status === 'complete') {
-                paydockStatus = responseBodyJson.capture ? c.STATUS_TYPES.PAID : c.STATUS_TYPES.AUTHORIZE;
-            } else {
-                paydockStatus = c.STATUS_TYPES.FAILED;
-            }
-            break;
-        default:
-            paydockStatus = c.STATUS_TYPES.PENDING;
-    }
-    return paydockStatus
-}
-
-function isValidJSON(jsonString) {
-    if (typeof jsonString === 'undefined') return true
-    try {
-        const o = JSON.parse(jsonString)
-        if (o && typeof o === 'object') return true
-    } catch (e) {
-        // continue regardless of error
-    }
-    return false
 }
 
 function isValidMetadata(str) {
@@ -71,13 +41,6 @@ function getPaymentKeyUpdateAction(paymentKey, request, response) {
 }
 
 
-function createChangeTransactionInteractionId(transactionId, interactionId) {
-    return {
-        action: 'changeTransactionInteractionId',
-        transactionId,
-        interactionId,
-    }
-}
 
 function createAddTransactionAction({
                                         type,
@@ -128,11 +91,9 @@ function createAddTransactionActionByResponse(amount, currencyCode, response) {
 
 export {
     createSetCustomFieldAction,
-    isValidJSON,
     isValidMetadata,
+    createAddTransactionAction,
     getPaymentKeyUpdateAction,
-    getPaydockStatus,
-    createChangeTransactionInteractionId,
     createAddTransactionActionByResponse,
     deleteCustomFieldAction
 }

@@ -130,15 +130,6 @@ async function setUpClient(config) {
       return ctpClient.execute(url)
     },
 
-    fetchByKeys(uri, keys) {
-      const keyList = keys.map((key) => `"${key}"`)
-      const keyConditions = `key in (${keyList.join(',')})`
-
-      return ctpClient.execute(
-        this.buildRequestOptions(uri.where(keyConditions).build()),
-      )
-    },
-
     fetchBatches(uri, callback, opts = { accumulate: false }) {
       return this.process(
         this.buildRequestOptions(uri.build()),

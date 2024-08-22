@@ -4,7 +4,7 @@ import utils from '../../utils.js'
 
 const mainLogger = utils.getLogger()
 
-async function ensurePaymentCustomType(ctpClient, projectKey) {
+async function initPaymentCustomType(ctpClient, projectKey) {
   const paymentCustomType = await utils.readAndParseJsonFile(
     'resources/web-components-payment-type.json',
   )
@@ -15,7 +15,7 @@ async function ensurePaymentCustomType(ctpClient, projectKey) {
   )
 }
 
-async function ensureCustomerVaultTokens(ctpClient, projectKey) {
+async function initCustomerVaultTokens(ctpClient, projectKey) {
   const сustomerVaultTokens = await utils.readAndParseJsonFile(
       'resources/customer-vault-tokens-type.json',
   )
@@ -74,6 +74,6 @@ async function fetchTypeByKey(ctpClient, key) {
 }
 
 export {
-  ensurePaymentCustomType,
-  ensureCustomerVaultTokens
+  initPaymentCustomType,
+  initCustomerVaultTokens
 }

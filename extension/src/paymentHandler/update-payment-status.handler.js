@@ -26,6 +26,7 @@ async function execute(paymentObject) {
         refundedAmount
     } = await processPaymentStatusChange(paymentObject, requestBodyJson);
 
+
     if (error) {
         actions.push(createSetCustomFieldAction(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE, {
             status: false,

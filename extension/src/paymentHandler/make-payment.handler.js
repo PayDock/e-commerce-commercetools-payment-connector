@@ -81,7 +81,7 @@ async function execute(paymentObject) {
     }
 
     if (paydockStatus) {
-        const {orderState, orderPaymentState} = await getCommercetoolsStatusesByPaydockStatus(paydockStatus)
+        const {orderState, orderPaymentState} = getCommercetoolsStatusesByPaydockStatus(paydockStatus)
         actions.push(createSetCustomFieldAction(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE, JSON.stringify({
             orderPaymentStatus: orderPaymentState,
             orderStatus: orderState
@@ -100,7 +100,7 @@ async function execute(paymentObject) {
 }
 
 
-async function getCommercetoolsStatusesByPaydockStatus(paydockStatus) {
+function getCommercetoolsStatusesByPaydockStatus(paydockStatus) {
     let orderPaymentState
     let orderState
 

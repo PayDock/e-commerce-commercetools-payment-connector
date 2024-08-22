@@ -187,6 +187,7 @@ const WidgetConfigurationForm = () => {
                     setLoading(false);
                 } else {
                     try {
+                        setLoading(true);
                         const response = await apiAdapter.setConfigs(group, {
                             id: id,
                             version: version,
@@ -198,8 +199,13 @@ const WidgetConfigurationForm = () => {
                         setCreatedAt(response.createdAt ?? null);
                         setSuccess(true);
                     } catch (error) {
-                        setError({message: error.message});
-                        formik.setErrors(error.data);
+                        const errorMessage = error.response?.data?.message || error.message || 'An unknown error occurred';
+                        setError({ message: errorMessage });
+                        if (error.response?.data?.errors) {
+                            formik.setErrors(error.response.data.errors);
+                        } else {
+                            formik.setErrors({ general: errorMessage });
+                        }
                     } finally {
                         setLoading(false);
                     }

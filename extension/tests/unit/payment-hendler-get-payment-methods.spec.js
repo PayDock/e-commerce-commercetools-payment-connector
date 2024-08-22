@@ -1,3 +1,5 @@
+import {expect, test, jest} from '@jest/globals';
+
 import {setupServer} from "../../src/server.js";
 import {getAuthorizationRequestHeader, hasValidAuthorizationHeader} from '../../src/validator/authentication.js'
 import config from '../../src/config/config.js';
@@ -13,6 +15,26 @@ const livePaymentExtensionResponse = require('../../test-data/paymentHandler/get
 jest.mock('../../src/validator/authentication.js')
 jest.mock('../../src/config/config.js')
 
+jest.mock('@commercetools-backend/loggers', () => {
+    return {
+        createApplicationLogger: jest.fn(() => ({
+            info: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+        })),
+    };
+});
+jest.mock('../../src/config/config-loader.js', () => {
+    const originalModule = jest.requireActual('../../src/config/config-loader.js');
+    const loaderConfigResult = require('../../test-data/extentionConfig.json')
+
+    return {
+        __esModule: true,
+        ...originalModule,
+        loadConfig: jest.fn(() => loaderConfigResult),
+    };
+});
 config.getModuleConfig.mockResolvedValue(moduleConfigData)
 config.getCtpClient.mockResolvedValue({create: jest.fn(), builder: {customObjects: {}}})
 

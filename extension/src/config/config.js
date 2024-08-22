@@ -12,7 +12,7 @@ function getModuleConfig() {
         port: config.port,
         logLevel: config.logLevel,
         apiExtensionBaseUrl: extensionBaseUrl,
-        basicAuth: false,
+        basicAuth: true,
         projectKey: config.projectKey,
         keepAliveTimeout: 30,
         addCommercetoolsLineIteprojectKey: false,
@@ -98,5 +98,6 @@ export default {
     getPaydockConfig,
     getCtpClient,
     getExtensionConfig,
-    getPaydockApiUrl
+    getPaydockApiUrl,
+    loadAndValidateConfig
 }

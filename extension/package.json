@@ -1,17 +1,14 @@
 {
   "name": "commercetools-paydock-integration-extension",
-  "version": "1.0.0",
+  "version": "0.0.5",
   "description": "Integration between commercetools and Paydock payment service provider",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "jest --config jest.unit.config.js",
-    "test:watch": "jest --watch --config jest.config.js",
-    "test:all": "jest --config jest.config.js",
-    "integration": "jest --config jest.integration.config.js",
-    "e2e": "jest --config jest.e2e.config.js",
-    "check-coverage": "jest --config jest.config.js --coverage",
+    "test": "jest --config jest.config.js",
     "start": "node ./src/init.js",
+    "check-coverage": "jest --config jest.config.js --coverage",
+    "jest-coverage": "jest --coverage --collectCoverageFrom='src/**/*.js'",
     "lint": "eslint --quiet ./src ./test",
     "check": "npm run lint && prettier --check .",
     "doctoc": "doctoc --title '' . --github",
@@ -19,7 +16,9 @@
     "zip-google-function": "cp index.googleFunction.js index.js && zip -r extension-module.zip src resources .extensionrc index.js package.json && rm index.js",
     "zip-lambda-function": "cp index.lambda.js index.js && npm ci --production && zip -r extension-module.zip . && rm index.js",
     "zip-azure-function": "cp extension-trigger/index.azureFunction.js extension-trigger/index.js && npm ci --production && zip -r extension-module.zip . && rm extension-trigger/index.js",
-    "setup-resources": "run-func ./src/setup.js setupExtensionResources"
+    "setup-resources": "run-func ./src/setup.js setupExtensionResources",
+    "extension:post-deploy": "run-func ./src/post-deployment.js postDeployment",
+    "extension:pre-undeploy": "run-func ./src/pre-undeployment.js preUndeployment"
   },
   "keywords": [
     "Paydock",
@@ -33,8 +32,8 @@
     "url": "git+https://github.com/PayDock/e-commerce-commercetools-payment-connector"
   },
   "author": {
-    "name": "commercetools Professional Services",
-    "email": "ps-dev@commercetools.com"
+    "name": "Paydock",
+    "email": "dev@paydock.com"
   },
   "engines": {
     "node": ">=18"
@@ -68,6 +67,7 @@
     "supertest": "^7.0.0"
   },
   "dependencies": {
+    "@commercetools-backend/loggers": "^22.31.0",
     "@commercetools/api-request-builder": "6.0.0",
     "@commercetools/sdk-client": "3.0.0",
     "@commercetools/sdk-middleware-auth": "7.0.1",
@@ -75,7 +75,6 @@
     "@commercetools/sdk-middleware-queue": "3.0.0",
     "@commercetools/sdk-middleware-user-agent": "3.0.0",
     "@commercetools/sync-actions": "5.15.0",
-    "bunyan": "1.8.15",
     "dotenv": "^16.4.5",
     "lockfile-lint": "4.13.2",
     "lodash": "4.17.21",

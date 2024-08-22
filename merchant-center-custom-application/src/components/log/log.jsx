@@ -36,10 +36,18 @@ const LogsHistory = () => {
     const lastRowIndex = page * perPage;
     const firstRowIndex = lastRowIndex - perPage;
 
-    useEffect(async () => {
-        let logs = await apiAdapter.getLogs();
-        setRows(logs);
-        setCurrentRows(rows.slice(firstRowIndex, lastRowIndex))
+    useEffect(() => {
+        const fetchLogs = async () => {
+            try {
+                let logs = await apiAdapter.getLogs();
+                setRows(logs);
+                setCurrentRows(logs.slice(firstRowIndex, lastRowIndex));
+            } catch (error) {
+                setError({ message: `Error: ${error.message}` });
+            }
+        };
+
+        fetchLogs();
     }, []);
 
     useEffect(() => {

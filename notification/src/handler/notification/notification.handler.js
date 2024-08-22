@@ -1,9 +1,11 @@
 import {serializeError} from 'serialize-error'
 import VError from 'verror'
 import config from '../../config/config.js'
-import {addPaydockHttpLog, addPaydockLog} from '../../utils/logger.js'
+import {addPaydockLog} from '../../utils/logger.js'
 import ctp from '../../utils/ctp.js'
 import customObjectsUtils from '../../utils/custom-objects-utils.js'
+import {callPaydock} from './paydock-api-service.js';
+import fetch from "node-fetch";
 
 async function processNotification(
     notificationResponse
@@ -26,7 +28,6 @@ async function processNotification(
             result.status = 'Failure'
             result.message = 'Payment not found'
         } else if (event !== undefined) {
-            addPaydockHttpLog(notificationResponse)
             switch (event) {
                 case 'transaction_success':
                 case 'transaction_failure':
@@ -62,7 +63,7 @@ async function processNotification(
 
 async function processWebhook(event, payment, notification, ctpClient) {
     const result = {}
-    const {status, paymentStatus, orderStatus} = await getNewStatuses(notification)
+    const {status, paymentStatus, orderStatus} =  getNewStatuses(notification)
     let customStatus = status;
     const chargeId = notification._id
     const currentPayment = payment
@@ -157,21 +158,19 @@ async function processFraudNotification(event, payment, notification, ctpClient)
 
 
 async function processFraudNotificationComplete(event, payment, notification, ctpClient) {
-
+    const result = {}
     const fraudChargeId = notification._id ?? null;
     const cacheName = `paydock_fraud_${notification.reference}`
     let cacheData = await customObjectsUtils.getItem(cacheName)
     if (!cacheData) {
         return {message: 'Fraud data not found in local storage'};
     }
-
     cacheData = JSON.parse(cacheData)
-    const request = await generateChargeRequest(notification, cacheData, fraudChargeId)
+    const request = generateChargeRequest(notification, cacheData, fraudChargeId)
     const isDirectCharge = cacheData.capture
     await customObjectsUtils.removeItem(cacheName)
     const response = await createCharge(request, {directCharge: isDirectCharge}, true)
     const updatedChargeId = extractChargeIdFromNotification(response);
-
     if (response?.error) {
         result.status = 'UnfulfilledCondition'
         result.message = `Can't charge.${errorMessageToString(response)}`
@@ -186,6 +185,7 @@ async function processFraudNotificationComplete(event, payment, notification, ct
     }
 
     if (cacheData._3ds) {
+
         const attachResponse = await cardFraudAttach({fraudChargeId, updatedChargeId})
         if (attachResponse?.error) {
             result.status = 'UnfulfilledCondition'
@@ -200,8 +200,8 @@ async function processFraudNotificationComplete(event, payment, notification, ct
             return result
         }
     }
-
-    return await handleFraudNotification(response, updatedChargeId, ctpClient, payment);
+    const returnHandleFraudNotification = await handleFraudNotification(response, updatedChargeId, ctpClient, payment)
+    return returnHandleFraudNotification;
 }
 
 function extractChargeIdFromNotification(response) {
@@ -209,23 +209,21 @@ function extractChargeIdFromNotification(response) {
 }
 
 async function handleFraudNotification(response, updatedChargeId, ctpClient, payment) {
-    let updateActions = [];
 
+    let updateActions = [];
+    const result = {}
     const currentPayment = payment
     const currentVersion = payment.version
     let status = response?.resource?.data?.status
     status = status ? status.toLowerCase() : 'undefined'
     status = status.charAt(0).toUpperCase() + status.slice(1)
-
     let operation = response?.resource?.data?.type
     operation = operation ? operation.toLowerCase() : 'undefined'
     operation = operation.charAt(0).toUpperCase() + operation.slice(1)
 
     const isAuthorization = response?.resource?.data?.authorization ?? 0
-
     const {commerceToolsPaymentStatus, paydockStatus} = determineFraudPaymentStatus(isAuthorization, status);
     result.paydockStatus = paydockStatus
-
     updateActions = [
         {
             action: 'setCustomField',
@@ -235,7 +233,7 @@ async function handleFraudNotification(response, updatedChargeId, ctpClient, pay
         {
             action: 'setCustomField',
             name: 'PaydockTransactionId',
-            value: chargeId
+            value: updatedChargeId
         }
     ]
 
@@ -246,12 +244,11 @@ async function handleFraudNotification(response, updatedChargeId, ctpClient, pay
         result.status = 'Success'
 
         await addPaydockLog({
-            paydockChargeID: chargeId,
+            paydockChargeID: updatedChargeId,
             operation,
             status: result.status,
             message: ''
         })
-
         return result
     } catch (error) {
         result.status = 'Failure'
@@ -266,7 +263,7 @@ async function handleFraudNotification(response, updatedChargeId, ctpClient, pay
             {
                 action: 'setCustomField',
                 name: 'PaydockTransactionId',
-                value: chargeId
+                value: updatedChargeId
             },
             {
                 action: 'setCustomField',
@@ -294,7 +291,7 @@ function determineFraudPaymentStatus(isAuthorization, status) {
     };
 }
 
-async function generateChargeRequest(notification, cacheData, fraudChargeId) {
+function generateChargeRequest(notification, cacheData, fraudChargeId) {
     const paymentSource = notification.customer.payment_source
 
     if (cacheData.gateway_id) {
@@ -384,7 +381,7 @@ async function processRefundSuccessNotification(event, payment, notification, ct
     }
     const result = {}
     let paydockStatus
-    let chargeId = notification._id
+    const chargeId = notification._id
     const currentPayment = payment
     const currentVersion = payment.version
 
@@ -429,6 +426,11 @@ async function processRefundSuccessNotification(event, payment, notification, ct
             },
             {
                 action: 'setCustomField',
+                name: 'PaydockTransactionId',
+                value: chargeId
+            },
+            {
+                action: 'setCustomField',
                 name: 'PaymentExtensionRequest',
                 value: JSON.stringify({
                     action: 'FromNotification',
@@ -436,14 +438,6 @@ async function processRefundSuccessNotification(event, payment, notification, ct
                 })
             }
         ]
-
-        if (chargeId) {
-            updateActions.push({
-                action: 'setCustomField',
-                name: 'PaydockTransactionId',
-                value: chargeId
-            })
-        }
 
         try {
             await ctpClient.update(ctpClient.builder.payments, currentPayment.id, currentVersion, updateActions)
@@ -456,7 +450,6 @@ async function processRefundSuccessNotification(event, payment, notification, ct
             result.message = error
         }
     }
-    chargeId = chargeId ?? currentPayment.custom.fields.PaydockTransactionId
     await addPaydockLog({
         paydockChargeID: chargeId,
         operation: paydockStatus,
@@ -473,7 +466,10 @@ function calculateRefundedAmount(paydockStatus, oldRefundAmount, refundAmount, o
 }
 
 function calculateOrderAmount(payment){
-    const fraction = payment.amountPlanned.type === 'centPrecision' ? Math.pow(10, payment.amountPlanned.fractionDigits) : 1;
+    let fraction = 1;
+    if (payment?.amountPlanned?.type === 'centPrecision') {
+        fraction = 10 ** payment.amountPlanned.fractionDigits;
+    }
     return payment.amountPlanned.centAmount / fraction;
 }
 
@@ -532,11 +528,11 @@ async function cardFraudAttach({fraudChargeId, chargeId}) {
         fraud_charge_id: fraudChargeId
     }
 
-    return createCharge(request, {action: 'standalone-fraud-attach', chargeId}, true)
+    return await createCharge(request, {action: 'standalone-fraud-attach', chargeId}, true)
 }
 
 
-async function getNewStatuses(notification) {
+function getNewStatuses(notification) {
     let {status} = notification
     status = status ? status.toLowerCase() : 'undefined'
     status = status.charAt(0).toUpperCase() + status.slice(1)
@@ -585,74 +581,6 @@ async function getNewStatuses(notification) {
     }
 
     return {status: paydockPaymentStatus, paymentStatus: commerceToolsPaymentStatus, orderStatus: orderPaymentStatus}
-}
-
-async function callPaydock(url, data, method) {
-    let returnedRequest
-    let returnedResponse
-    url = await generatePaydockUrlAction(url)
-    try {
-        const {response, request} = await fetchAsyncPaydock(url, data, method)
-        returnedRequest = request
-        returnedResponse = response
-    } catch (err) {
-        returnedRequest = {body: JSON.stringify(data)}
-        returnedResponse = serializeError(err)
-    }
-
-    return {request: returnedRequest, response: returnedResponse}
-}
-
-async function generatePaydockUrlAction(url) {
-    const apiUrl = await config.getPaydockApiUrl()
-    return apiUrl + url
-}
-
-async function fetchAsyncPaydock(
-    url,
-    requestObj,
-    method
-) {
-    let response
-    let responseBody
-    let responseBodyInText
-    const request = await buildRequestPaydock(requestObj, method)
-
-    try {
-        response = await fetch(url, request)
-        responseBodyInText = await response.text()
-        responseBody = responseBodyInText ? JSON.parse(responseBodyInText) : ''
-    } catch (err) {
-        if (response)
-            // Handle non-JSON format response
-            throw new Error(
-                `Unable to receive non-JSON format resposne from Paydock API : ${responseBodyInText}`
-            )
-        // Error in fetching URL
-        else throw err
-    } finally {
-        if (responseBody.additionalData) {
-            delete responseBody.additionalData
-        }
-    }
-    return {response: responseBody, request}
-}
-
-async function buildRequestPaydock(requestObj, methodOverride) {
-    const paydockCredentials = await config.getPaydockConfig('connection')
-    const requestHeaders = {
-        'Content-Type': 'application/json',
-        'x-user-secret-key': paydockCredentials.credentials_secret_key
-    }
-
-    const request = {
-        method: methodOverride || 'POST',
-        headers: requestHeaders
-    }
-    if (methodOverride !== 'GET') {
-        request.body = JSON.stringify(requestObj)
-    }
-    return request
 }
 
 function errorMessageToString(response) {

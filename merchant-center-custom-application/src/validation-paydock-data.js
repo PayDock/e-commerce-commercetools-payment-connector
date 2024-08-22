@@ -73,33 +73,37 @@ class ValidationPaydockData {
 
             return await this.validateSecretKey(secret, isToken);
         } catch (error) {
-            throw new Error('Invalid Credentials.')
+            throw new Error(error.message || 'Invalid Credentials.')
         }
     }
 
 
     async validateSecretKey(secretKey, isToken = false) {
-        let config = {
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        }
-
-        config.headers[isToken ? 'x-access-token' : 'x-user-secret-key'] = secretKey;
-
-        let gateways = await axios.get(`${this.apiUrl}/v1/gateways?limit=1000`, config);
-        let services = await axios.get(`${this.apiUrl}/v1/services?limit=1000`, config);
-        let fraudServices = {}
-
-        return {
-            gatewayIds: gateways.data.resource.data.map((element) => element._id),
-            servicesIds: services.data.resource.data.map((element) => {
-                if('fraud' === element.group){
-                    fraudServices[element._id] = "passive" !== element.fraud_options.mode
+        try {
+            let config = {
+                headers: {
+                    'Content-Type': 'application/json',
                 }
-                return element._id;
-            }),
-            fraudServices,
+            }
+
+            config.headers[isToken ? 'x-access-token' : 'x-user-secret-key'] = secretKey;
+
+            let gateways = await axios.get(`${this.apiUrl}/v1/gateways?limit=1000`, config);
+            let services = await axios.get(`${this.apiUrl}/v1/services?limit=1000`, config);
+            let fraudServices = {}
+
+            return {
+                gatewayIds: gateways.data.resource.data.map((element) => element._id),
+                servicesIds: services.data.resource.data.map((element) => {
+                    if('fraud' === element.group){
+                        fraudServices[element._id] = "passive" !== element.fraud_options.mode
+                    }
+                    return element._id;
+                }),
+                fraudServices,
+            }
+        } catch (error) {
+            throw new Error(error.response?.data?.message || error.message || 'Unavailable API service.');
         }
     }
 

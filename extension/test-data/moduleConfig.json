@@ -3,7 +3,7 @@
   "port": 3001,
   "logLevel": 30,
   "apiExtensionBaseUrl": "localhost",
-  "basicAuth": false,
+  "basicAuth": true,
   "projectKey": "CommercetoolsProjectKey",
   "keepAliveTimeout": 30,
   "addCommercetoolsLineIteprojectKey": false,

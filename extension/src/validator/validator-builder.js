@@ -3,7 +3,6 @@ import {
 } from '../paymentHandler/payment-utils.js'
 import errorMessages from './error-messages.js'
 import {
-  getStoredCredential,
   hasValidAuthorizationHeader,
 } from './authentication.js'
 
@@ -13,17 +12,13 @@ function withPayment(paymentObject) {
   return {
     validateMetadataFields() {
       if (!paymentObject.custom) return this
-      if (!isValidMetadata(paymentObject.custom.fields.CommercetoolsProjectKey) && !isValidMetadata(paymentObject.custom.fields.commercetoolsProjectKey))
+      if (!isValidMetadata(paymentObject.custom.fields.commercetoolsProjectKey) && !isValidMetadata(paymentObject.custom.fields.CommercetoolsProjectKey))
         errors.missingRequiredCtpProjectKey =
-          errorMessages.MISSING_REQUIRED_FIELDS_CTP_PROJECT_KEY
+            errorMessages.MISSING_REQUIRED_FIELDS_CTP_PROJECT_KEY
       return this
     },
     validateAuthorizationHeader(authToken) {
-      const ctpProjectKey = paymentObject.custom.fields.CommercetoolsProjectKey ?? paymentObject.custom.fields.commercetoolsProjectKey
-      const storedCredential = getStoredCredential(ctpProjectKey)
-      if (!storedCredential)
-        errors.missingCredentials = errorMessages.MISSING_CREDENTIAL
-      else if (!hasValidAuthorizationHeader(storedCredential, authToken)) {
+      if (!hasValidAuthorizationHeader(authToken)) {
         errors.unauthorizedRequest = errorMessages.UNAUTHORIZED_REQUEST
       }
       return this
@@ -42,8 +37,8 @@ function withPayment(paymentObject) {
 
 function _getErrorResponseCode(value) {
   if (
-    value === errorMessages.UNAUTHORIZED_REQUEST ||
-    value === errorMessages.MISSING_CREDENTIAL
+      value === errorMessages.UNAUTHORIZED_REQUEST ||
+      value === errorMessages.MISSING_CREDENTIAL
   )
     return 'Unauthorized'
   return 'InvalidField'

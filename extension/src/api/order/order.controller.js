@@ -1,61 +1,104 @@
-import {serializeError} from 'serialize-error'
-import httpUtils from '../../utils.js'
+import {serializeError} from 'serialize-error';
+import httpUtils from '../../utils.js';
+import {getAuthorizationRequestHeader, hasValidAuthorizationHeader} from "../../validator/authentication.js";
+import errorMessages from "../../validator/error-messages.js";
 
-const logger = httpUtils.getLogger()
+
+const logger = httpUtils.getLogger();
 
 async function processRequest(request, response) {
     if (request.method !== 'POST') {
-        logger.debug(
-            `Received non-POST request: ${request.method}. The request will not be processed...`,
-        )
-        return httpUtils.sendResponse({
-            response,
-            statusCode: 400,
-            data: {
-                errors: [
-                    {
-                        code: 'InvalidInput',
-                        message: 'Invalid HTTP method',
-                    },
-                ],
-            },
-        })
+        return sendInvalidMethodResponse(response);
     }
-    let orderObject = {}
+
+    let orderObject = {};
     try {
-        orderObject = await _getOrderObject(request)
+        const authToken = getAuthorizationRequestHeader(request)
+        if (!hasValidAuthorizationHeader(authToken)) {
+            return sendRequestIsUnauthorized(response);
+        }
+        orderObject = await getOrderObject(request);
         if (orderObject.orderNumber) {
-            return httpUtils.sendResponse({response, statusCode: 200, data: {actions: []}})
+            return sendEmptyActionsResponse(response);
         }
-        const result = {
-            response,
-            statusCode: 200,
-            data: {
-                actions: [{
-                    "action": "setOrderNumber",
-                    "orderNumber": orderObject.id
-                }]
-            }
-        }
-        return httpUtils.sendResponse(result)
+        await updateOrderNumberIfEmpty(response, orderObject);
     } catch (err) {
-        return httpUtils.sendResponse({response, statusCode: 200, data: {actions: []}})
+        return sendErrorResponse(response, orderObject, err);
     }
+    return null
 }
 
-async function _getOrderObject(request) {
-    let body = {}
+function sendRequestIsUnauthorized(response) {
+
+    return httpUtils.sendResponse({
+        response,
+        statusCode: 400,
+        data: {
+            errors: [
+                {
+                    code: 'Unauthorized',
+                    message: errorMessages.UNAUTHORIZED_REQUEST,
+                },
+            ],
+        },
+    });
+}
+
+function sendInvalidMethodResponse(response) {
+    return httpUtils.sendResponse({
+        response,
+        statusCode: 400,
+        data: {
+            errors: [
+                {
+                    code: 'InvalidInput',
+                    message: 'Invalid HTTP method',
+                },
+            ],
+        },
+    });
+}
+
+function sendEmptyActionsResponse(response) {
+    return httpUtils.sendResponse({response, statusCode: 200, data: {actions: []}});
+}
+
+async function updateOrderNumberIfEmpty(response, orderObject) {
+    const result = {
+        response,
+        statusCode: 200,
+        data: {
+            actions: [{
+                action: "setOrderNumber",
+                orderNumber: orderObject.id
+            }]
+        }
+    };
+    return httpUtils.sendResponse(result);
+}
+
+function sendErrorResponse(response, orderObject, err) {
+    return httpUtils.sendResponse({
+        response,
+        statusCode: 400,
+        data: httpUtils.handleUnexpectedPaymentError(orderObject, err),
+    });
+}
+
+async function getOrderObject(request) {
     try {
-        body = await httpUtils.collectRequestData(request)
-        const requestBody = JSON.parse(body)
-        return requestBody.resource.obj
+        const body = await httpUtils.collectRequestData(request);
+        const requestBody = JSON.parse(body);
+        return requestBody.resource.obj;
     } catch (err) {
-        const errorStackTrace =
-            `Error during parsing CTP request:  Ending the process. ` +
-            `Error: ${JSON.stringify(serializeError(err))}`
-        logger.error(errorStackTrace)
-        throw err
+        logParsingError(err);
+        throw err;
     }
 }
 
-export default {processRequest}
+function logParsingError(err) {
+    const errorStackTrace = `Error during parsing CTP request: Ending the process. Error: ${JSON.stringify(serializeError(err))}`;
+    logger.error(errorStackTrace);
+}
+
+export default {processRequest};

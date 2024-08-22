@@ -58,9 +58,9 @@ class CommerceToolsAPIAdapter {
   }
 
   async makeRequest(endpoint, method = 'GET', body = null) {
-    const accessToken = await this.getAccessToken();
-    const apiUrl = `https://api.${this.region}.commercetools.com/${this.projectKey}${endpoint}`;
     try {
+      const accessToken = await this.getAccessToken();
+      const apiUrl = `https://api.${this.region}.commercetools.com/${this.projectKey}${endpoint}`;
       const response = await fetch(apiUrl, {
         headers: {
           authorization: `Bearer ${accessToken}`,
@@ -149,7 +149,7 @@ class CommerceToolsAPIAdapter {
   }
 
 
-  async collectArrayPayments(payments, paymentsArray) {
+  collectArrayPayments(payments, paymentsArray) {
     if (!payments.results) return;
 
     payments.results.forEach((payment) => {
@@ -211,7 +211,7 @@ class CommerceToolsAPIAdapter {
       const paydockOrders = [];
       const paymentsArray = [];
       const payments = await this.makeRequest('/payments?where=' + encodeURIComponent('paymentMethodInfo(method="paydock-pay") and custom(fields(AdditionalInformation is not empty))') + '&sort=createdAt+desc&limit=500');
-      await this.collectArrayPayments(payments, paymentsArray);
+      this.collectArrayPayments(payments, paymentsArray);
       if(paymentsArray) {
         let orderQuery = '"' + Object.keys(paymentsArray).join('","') + '"';
         const orders = await this.makeRequest('/orders?where=' + encodeURIComponent('paymentInfo(payments(id in(' + orderQuery + ')))') + '&sort=createdAt+desc&limit=500');
@@ -228,36 +228,38 @@ class CommerceToolsAPIAdapter {
     let response = {};
     let error = null;
 
-    const payment = await this.makeRequest('/payments/' + orderId);
-    if (payment) {
-      const requestData = {
-        version: payment.version,
-        actions: [
-          {
-            action: 'setCustomField',
-            name: 'PaymentExtensionRequest',
-            value: JSON.stringify({
-              action: 'updatePaymentStatus',
-              request: data,
-            }),
-          },
-        ],
-      };
-      try {
+    try {
+      const payment = await this.makeRequest('/payments/' + orderId);
+      if (payment) {
+        const requestData = {
+          version: payment.version,
+          actions: [
+            {
+              action: 'setCustomField',
+              name: 'PaymentExtensionRequest',
+              value: JSON.stringify({
+                action: 'updatePaymentStatus',
+                request: data,
+              }),
+            },
+          ],
+        };
+
         let updateStatusResponse = await this.makeRequest('/payments/' + orderId, 'POST', requestData);
         let paymentExtensionResponse = updateStatusResponse.custom?.fields?.PaymentExtensionResponse;
         if (!paymentExtensionResponse) {
           error = 'Error update status of payment';
+        } else {
+          paymentExtensionResponse = JSON.parse(paymentExtensionResponse);
+          if (!paymentExtensionResponse.status) {
+            error = paymentExtensionResponse.message;
+          }
         }
-        paymentExtensionResponse = JSON.parse(paymentExtensionResponse);
-        if (!paymentExtensionResponse.status) {
-          error = paymentExtensionResponse.message;
-        }
-      } catch (error) {
-        return { success: false, message: 'Error update status of payment' };
+      } else {
+        error = 'Error fetching payment';
       }
-    } else {
-      error = 'Error fetching payment';
+    } catch (err) {
+      return { success: false, message: 'Error update status of payment' };
     }
 
     if (error) {
@@ -279,13 +281,13 @@ class CommerceToolsAPIAdapter {
       };
 
       if (order.paymentInfo.payments) {
-        await this.collectArrayOrdersPayments(order.paymentInfo.payments, paymentsArray, objOrder);
+         this.collectArrayOrdersPayments(order.paymentInfo.payments, paymentsArray, objOrder);
       }
       paydockOrders.push(objOrder);
     }
   }
 
-  async collectArrayOrdersPayments(orderPayments, paymentsArray, objOrder) {
+  collectArrayOrdersPayments(orderPayments, paymentsArray, objOrder) {
     for (const payment of orderPayments) {
       if (paymentsArray[payment.id] !== undefined) {
         let currentPayment = paymentsArray[payment.id];

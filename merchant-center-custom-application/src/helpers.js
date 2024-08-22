@@ -4,8 +4,6 @@ import {
   transformLocalizedFieldToLocalizedString,
 } from '@commercetools-frontend/l10n';
 
-export const getErrorMessage = (error) =>
-  error.graphQLErrors?.map((e) => e.message).join('\n') || error.message;
 
 export const extractErrorFromGraphQlResponse = (graphQlResponse) => {
   if (graphQlResponse instanceof Error && isApolloError(graphQlResponse)) {

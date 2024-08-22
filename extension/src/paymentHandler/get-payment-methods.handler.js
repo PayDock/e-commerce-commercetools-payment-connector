@@ -5,46 +5,55 @@ import c from '../config/constants.js'
 import config from "../config/config.js";
 import {getUserVaultTokens} from "../service/web-component-service.js";
 
+
 async function execute(paymentObject) {
 
-    const paymentExtensionRequest = JSON.parse(
-        paymentObject?.custom?.fields?.PaymentExtensionRequest
-    )
-    let CommerceToolsUserId = null;
-    const amountPlanned = paymentObject.amountPlanned ?? null;
-    let totalPrice = 0;
-    if (amountPlanned && amountPlanned.type === "centPrecision") {
-        const fraction = 10 ** amountPlanned.fractionDigits;
-        const centAmount = amountPlanned.centAmount;
-        totalPrice = centAmount / fraction;
-    }
-
-    if (paymentExtensionRequest.request) {
-        CommerceToolsUserId = paymentExtensionRequest.request.CommerceToolsUserId
-    }
+    const paymentExtensionRequest = getPaymentExtensionRequest(paymentObject);
+    const CommerceToolsUserId = getCommerceToolsUserId(paymentExtensionRequest);
+    const totalPrice = calculateTotalPrice(paymentObject.amountPlanned);
     const paydockCredentials = await config.getPaydockConfig('all', true);
-    let connection = {};
-    if (paydockCredentials.sandbox.sandbox_mode === "Yes") {
-        connection = paydockCredentials.sandbox;
-    } else {
-        connection = paydockCredentials.live;
+    const connection = getConnectionConfig(paydockCredentials);
+    const savedCredentials = await getSavedCredentials(CommerceToolsUserId);
+    const responseData = buildResponseData(paydockCredentials, connection, totalPrice, savedCredentials);
+    return {actions: [createSetCustomFieldAction(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE, responseData)]};
+}
+
+function getPaymentExtensionRequest(paymentObject) {
+    return JSON.parse(paymentObject?.custom?.fields?.PaymentExtensionRequest || '{}');
+}
+
+function getCommerceToolsUserId(paymentExtensionRequest) {
+    return paymentExtensionRequest.request?.CommerceToolsUserId || null;
+}
+
+function calculateTotalPrice(amountPlanned) {
+    if (amountPlanned?.type === "centPrecision") {
+        const fraction = 10 ** amountPlanned.fractionDigits;
+        return amountPlanned.centAmount / fraction;
     }
+    return 0;
+}
 
+function getConnectionConfig(paydockCredentials) {
+    return paydockCredentials.sandbox.sandbox_mode === "Yes"
+        ? paydockCredentials.sandbox
+        : paydockCredentials.live;
+}
 
+async function getSavedCredentials(CommerceToolsUserId) {
     const savedCredentials = {};
     if (CommerceToolsUserId) {
         const userVaultTokens = await getUserVaultTokens(CommerceToolsUserId);
-        if (userVaultTokens.length) {
-            for (const item of userVaultTokens) {
-                if (savedCredentials[item.type] === undefined) {
-                    savedCredentials[item.type] = {}
-                }
-                savedCredentials[item.type][item.vault_token] = item;
-            }
+        for (const item of userVaultTokens) {
+            savedCredentials[item.type] = savedCredentials[item.type] || {};
+            savedCredentials[item.type][item.vault_token] = item;
         }
     }
+    return savedCredentials;
+}
 
-    const responseData = {
+function buildResponseData(paydockCredentials, connection, totalPrice, savedCredentials) {
+    return {
         sandbox_mode: paydockCredentials.sandbox.sandbox_mode,
         api_credentials: {
             credentials_type: connection.credentials_type,
@@ -207,11 +216,8 @@ async function execute(paymentObject) {
         },
         saved_credentials: savedCredentials
     }
-
-    const actions = []
-    actions.push(createSetCustomFieldAction(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE, responseData));
-    return {actions}
 }
+
 
 function isUseOnCheckout(paymentMethod, connection, paydockCredentials, totalPrice) {
     const paymentMethods = {

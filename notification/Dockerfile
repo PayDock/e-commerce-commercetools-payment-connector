@@ -1,5 +1,4 @@
 FROM node:18-alpine3.18
-LABEL maintainer="Professional Services <ps-dev@commercetools.com>"
 
 WORKDIR /app
 

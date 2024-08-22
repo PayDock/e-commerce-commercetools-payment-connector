@@ -1,0 +1,62 @@
+{
+  "id": "1888cfa6-4f30-48ca-9d81-eae595630a5d",
+  "version": 40,
+  "versionModifiedAt": "2024-07-30T06:10:57.576Z",
+  "lastMessageSequenceNumber": 1,
+  "createdAt": "2024-07-30T06:02:02.303Z",
+  "lastModifiedAt": "2024-07-30T06:10:57.576Z",
+  "lastModifiedBy": {
+    "clientId": "kjQW8-nXHq4CfKVdFzEjUl6c",
+    "isPlatformClient": false
+  },
+  "createdBy": {
+    "clientId": "uKgzoXpkdctZy13P8rMeCs7x",
+    "isPlatformClient": false,
+    "anonymousId": "0784256f-1ffb-44aa-8260-c3665ffd42cd"
+  },
+  "amountPlanned": {
+    "type": "centPrecision",
+    "currencyCode": "AUD",
+    "centAmount": 1500,
+    "fractionDigits": 2
+  },
+  "paymentMethodInfo": {
+    "paymentInterface": "Mock",
+    "method": "paydock-pay",
+    "name": {
+      "en": "Paydock"
+    }
+  },
+  "custom": {
+    "type": {
+      "typeId": "type",
+      "id": "d23a7345-317d-41cd-bb30-490f226d950b"
+    },
+    "fields": {
+      "AdditionalInformation": "{}",
+      "PaymentExtensionRequest": "{\"action\":\"FromNotification\",\"request\":{}}",
+      "CapturedAmount": 10,
+      "CommerceToolsUserId": "not authorized",
+      "PaydockPaymentType": "card",
+      "PaydockPaymentStatus": "paydock-refunded",
+      "RefundedAmount": 10,
+      "CommercetoolsProjectKey": "paydockecomm",
+      "PaydockTransactionId": "66a88218c572aa88f2a486f7"
+    }
+  },
+  "paymentStatus": {},
+  "transactions": [
+    {
+      "id": "7a40a0bf-fce6-47fd-a607-33ee97d396bc",
+      "type": "Charge",
+      "amount": {
+        "type": "centPrecision",
+        "currencyCode": "AUD",
+        "centAmount": 1500,
+        "fractionDigits": 2
+      },
+      "state": "Initial"
+    }
+  ],
+  "interfaceInteractions": []
+}
