@@ -10,7 +10,14 @@ services:
     ports:
       - 8082:8082
     environment:
-      - "PAYDOCK_INTEGRATION_CONFIG=xxxxxx"
+      - "COMMERCETOOLS_CLIENT_ID=xxxxxx"
+      - "COMMERCETOOLS_CLIENT_SECRET=xxxxxx"
+      - "COMMERCETOOLS_PROJECT_KEY=xxxxxx"
+      - "COMMERCETOOLS_API_URL=xxxxxx"
+      - "COMMERCETOOLS_AUTH_URL=xxxxxx"
+      - "PAYDOCK_API_LIVE_URL=xxxxxx"
+      - "PAYDOCK_API_SANDBOX_URL=xxxxxx"
+      - "EXTENSION_BASE_URL=xxxxxx"
 
   paydock-notification:
     build:
@@ -20,4 +27,12 @@ services:
     ports:
       - 8443:8443
     environment:
-      - "PAYDOCK_INTEGRATION_CONFIG=xxxxxx"
+      - "COMMERCETOOLS_CLIENT_ID=xxxxxx"
+      - "COMMERCETOOLS_CLIENT_SECRET=xxxxxx"
+      - "COMMERCETOOLS_PROJECT_KEY=xxxxxx"
+      - "COMMERCETOOLS_API_URL=xxxxxx"
+      - "COMMERCETOOLS_AUTH_URL=xxxxxx"
+      - "PAYDOCK_API_LIVE_URL=xxxxxx"
+      - "PAYDOCK_API_SANDBOX_URL=xxxxxx"
+      - "NOTIFICATION_BASE_URL=xxxxxx"
+
