@@ -46,32 +46,6 @@ describe('Payment Handler', () => {
             withPayment.mockReturnValue(mockValidator);
     });
 
-
-    describe('handlePayment', () => {
-        test('should return an error if authToken is missing', async () => {
-            const result = await paymentHandler.handlePayment({}, null);
-            expect(result.errors).toEqual([
-                {
-                    code: 'Unauthorized',
-                    message: errorMessages.UNAUTHORIZED_REQUEST,
-                },
-            ]);
-        });
-
-        test('should return validation errors if payment request is invalid', async () => {
-            const mockValidator = {
-                validateMetadataFields: jest.fn(),
-                validateAuthorizationHeader: jest.fn(),
-                hasErrors: jest.fn().mockReturnValue(true),
-                getErrors: jest.fn().mockReturnValue([{code: 'Invalid', message: 'Invalid request'}]),
-            };
-            withPayment.mockReturnValue(mockValidator);
-
-            const result = await paymentHandler.handlePayment({}, 'authToken');
-            expect(result.errors).toEqual([{code: 'Invalid', message: 'Invalid request'}]);
-        });
-    });
-
     describe('handlePaymentByExtRequest', () => {
         test('should return null if actionExtension is missing', async () => {
             paymentObject.custom.fields.PaymentExtensionRequest = JSON.stringify({});

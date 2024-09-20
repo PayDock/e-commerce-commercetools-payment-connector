@@ -5,13 +5,26 @@ let config
 let paydockConfig;
 let ctpClient;
 
+function getExtensionUrl() {
+    return process.env.CONNECT_SERVICE_URL;
+}
+
+function decrypt(data, clientSecret) {
+    const keyArrayLen = clientSecret.length;
+
+    return data.split("").map((dataElement, index) => {
+        const remainder = index % keyArrayLen;
+
+        return String.fromCharCode(dataElement.charCodeAt(0) / clientSecret.charCodeAt(remainder))
+    }).join("");
+}
+
 function getModuleConfig() {
-    const extensionBaseUrl = process.env.CONNECT_SERVICE_URL ?? config.extensionBaseUrl;
     return {
         removeSensitiveData: true,
         port: config.port,
         logLevel: config.logLevel,
-        apiExtensionBaseUrl: extensionBaseUrl,
+        apiExtensionBaseUrl: getExtensionUrl(),
         basicAuth: true,
         projectKey: config.projectKey,
         keepAliveTimeout: 30,
@@ -26,6 +39,7 @@ async function getCtpClient() {
     }
     return ctpClient;
 }
+
 async function getPaydockApiUrl() {
     const paydockC = await getPaydockConfig('connection');
     return paydockC.api_url;
@@ -62,6 +76,15 @@ async function getPaydockConfig(type = 'all', disableCache = false) {
                 paydockConfig[element.key] = element.value;
             });
         }
+        ["live", "sandbox"].forEach((group) => [
+            "credentials_access_key",
+            "credentials_public_key",
+            "credentials_secret_key"
+        ].forEach((field) => {
+            if (paydockConfig[group]?.[field]) {
+                paydockConfig[group][field] = decrypt(paydockConfig[group][field], config.clientSecret)
+            }
+        }))
     }
     switch (type) {
         case 'connection':
@@ -69,7 +92,7 @@ async function getPaydockConfig(type = 'all', disableCache = false) {
                 paydockConfig['sandbox'].api_url = config.paydockSandboxUrl
                 return paydockConfig['sandbox'] ?? {};
             }
-            paydockConfig['live'].api_url =  config.paydockLiveUrl;
+            paydockConfig['live'].api_url = config.paydockLiveUrl;
             return paydockConfig['live'] ?? {};
 
         case 'widget:':
@@ -99,5 +122,4 @@ export default {
     getCtpClient,
     getExtensionConfig,
     getPaydockApiUrl,
-    loadAndValidateConfig
 }

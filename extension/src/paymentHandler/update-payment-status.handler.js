@@ -57,10 +57,11 @@ async function execute(paymentObject) {
         response.message = "Merchant refunded money"
         message = `Refunded ${requestBodyJson.refundAmount}`
     }
-    await httpUtils.addPaydockLog({
+
+    httpUtils.addPaydockLog({
         paydockChargeID: chargeId,
         operation: newStatus,
-        responseStatus,
+        status: responseStatus,
         message
     })
     actions.push(createSetCustomFieldAction(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE, response));

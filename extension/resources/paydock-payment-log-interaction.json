@@ -1,0 +1,69 @@
+{
+    "key": "paydock-payment-log-interaction",
+    "name": {
+        "en": "Payment Log"
+    },
+    "description": {
+        "en": "Payment logs history"
+    },
+    "resourceTypeIds": [
+        "payment-interface-interaction"
+    ],
+    "fieldDefinitions": [
+        {
+            "name": "createdAt",
+            "label": {
+                "en": "Date"
+            },
+            "required": true,
+            "type": {
+                "name": "DateTime"
+            },
+            "inputHint": "SingleLine"
+        },
+        {
+            "name": "chargeId",
+            "label": {
+                "en": "Paydock Charge ID"
+            },
+            "required": false,
+            "type": {
+                "name": "String"
+            },
+            "inputHint": "SingleLine"
+        },
+        {
+            "name": "operation",
+            "label": {
+                "en": "Operation"
+            },
+            "required": false,
+            "type": {
+                "name": "String"
+            },
+            "inputHint": "SingleLine"
+        },
+        {
+            "name": "status",
+            "label": {
+                "en": "Status"
+            },
+            "required": false,
+            "type": {
+                "name": "String"
+            },
+            "inputHint": "SingleLine"
+        },
+        {
+            "name": "message",
+            "label": {
+                "en": "Message"
+            },
+            "required": false,
+            "type": {
+                "name": "String"
+            },
+            "inputHint": "SingleLine"
+        }
+    ]
+}

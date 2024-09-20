@@ -14,7 +14,7 @@ async function processRequest(request, response) {
                 errors: [
                     {
                         code: 'InvalidInput',
-                        message: 'Invalid HTTP method...',
+                        message: 'Invalid HTTP method',
                     },
                 ],
             },
@@ -24,18 +24,15 @@ async function processRequest(request, response) {
     try {
         const authToken = getAuthorizationRequestHeader(request)
         paymentObject = await _getPaymentObject(request)
-        const paymentExtensionRequest = paymentObject?.custom?.fields?.PaymentExtensionRequest ?? null;
-
-        const paymentResult = paymentExtensionRequest ? await paymentHandler.handlePaymentByExtRequest(
+        const paymentResult = await paymentHandler.handlePaymentByExtRequest(
             paymentObject,
             authToken,
-        ) : await paymentHandler.handlePayment(
-            paymentObject,
-            authToken,
-        );
-
+        )
         if (paymentResult === null) {
             return httpUtils.sendResponse({response, statusCode: 200, data: {actions: []}})
+        }
+        if (paymentResult.actions) {
+            paymentResult.actions = paymentResult.actions.concat(httpUtils.getLogsAction())
         }
 
         const result = {
@@ -61,7 +58,7 @@ async function _getPaymentObject(request) {
     let body = {}
     try {
         body = await httpUtils.collectRequestData(request)
-        const requestBody = JSON.parse(body)
+       const requestBody = JSON.parse(body)
         return requestBody.resource.obj
     } catch (err) {
         const errorStackTrace =

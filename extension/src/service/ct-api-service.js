@@ -18,7 +18,6 @@ async function updateOrderPaymentState(orderId, status) {
             return true;
         }
     }
-
     return false;
 }
 

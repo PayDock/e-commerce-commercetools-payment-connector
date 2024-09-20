@@ -24,8 +24,7 @@ function isValidMetadata(str) {
 }
 
 function getPaymentKeyUpdateAction(paymentKey, request, response) {
-    const requestBodyJson = JSON.parse(request.body)
-    const reference = requestBodyJson.reference?.toString()
+    const reference = request.reference?.toString()
     const pspReference = response.pspReference?.toString()
     const newReference = pspReference || reference
     let paymentKeyUpdateAction

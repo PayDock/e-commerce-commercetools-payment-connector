@@ -1,17 +1,18 @@
-import { serializeError } from 'serialize-error';
-import loggers  from '@commercetools-backend/loggers';
-import { fileURLToPath } from 'url';
+import {serializeError} from 'serialize-error';
+import loggers from '@commercetools-backend/loggers';
+import {fileURLToPath} from 'url';
 import path from 'path';
 import fs from 'node:fs/promises';
 import config from './config/config.js';
 
-const { createApplicationLogger } = loggers;
+const {createApplicationLogger} = loggers;
 
 let loggerInstance;
+const logActions = [];
 
 function getLogger() {
     if (!loggerInstance) {
-         loggerInstance = createApplicationLogger({
+        loggerInstance = createApplicationLogger({
             name: 'ctp-paydock-integration-extension',
             level: config.getModuleConfig()?.logLevel || 'info',
         });
@@ -19,19 +20,22 @@ function getLogger() {
     return loggerInstance;
 }
 
-async function addPaydockLog(data) {
-    const logKey = `paydock-log_${Date.now()}`;
-    const logObject = {
-        container: "paydock-logs",
-        key: logKey,
-        value: data,
-    };
+function addPaydockLog(data) {
+    const date = new Date();
 
-    const ctpClient = await config.getCtpClient();
-    await ctpClient.create(
-        ctpClient.builder.customObjects,
-        JSON.stringify(logObject)
-    );
+    logActions.push({
+        "action": "addInterfaceInteraction",
+        "type": {
+            "key": "paydock-payment-log-interaction"
+        },
+        "fields": {
+            "createdAt": date.toISOString(),
+            "chargeId": data.paydockChargeID,
+            "operation": data.operation,
+            "status": data.status,
+            "message": data.message
+        }
+    })
 }
 
 function collectRequestData(request) {
@@ -49,7 +53,7 @@ function collectRequestData(request) {
     });
 }
 
-function sendResponse({ response, statusCode = 200, headers, data }) {
+function sendResponse({response, statusCode = 200, headers, data}) {
     response.writeHead(statusCode, headers);
     response.end(JSON.stringify(data));
 }
@@ -79,7 +83,7 @@ async function readAndParseJsonFile(pathToJsonFileFromProjectRoot) {
 
 async function deleteElementByKeyIfExists(ctpClient, key) {
     try {
-        const { body } = await ctpClient.fetchByKey(
+        const {body} = await ctpClient.fetchByKey(
             ctpClient.builder.extensions,
             key
         );
@@ -93,12 +97,17 @@ async function deleteElementByKeyIfExists(ctpClient, key) {
     }
 }
 
+function getLogsAction(){
+    return logActions;
+}
+
 export default {
     collectRequestData,
     sendResponse,
     getLogger,
+    getLogsAction,
     handleUnexpectedPaymentError,
     readAndParseJsonFile,
     addPaydockLog,
-    deleteElementByKeyIfExists,
+    deleteElementByKeyIfExists
 };

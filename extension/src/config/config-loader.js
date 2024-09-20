@@ -26,8 +26,7 @@ function loadFromPaydockIntegrationEnvVar() {
         apiUrl: process.env.COMMERCETOOLS_API_URL,
         authUrl: process.env.COMMERCETOOLS_AUTH_URL,
         paydockSandboxUrl: process.env.PAYDOCK_API_SANDBOX_URL,
-        paydockLiveUrl: process.env.PAYDOCK_API_LIVE_URL,
-        extensionBaseUrl: process.env.EXTENSION_BASE_URL
+        paydockLiveUrl: process.env.PAYDOCK_API_LIVE_URL
     };
     const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
     if (missingVars.length > 0) {

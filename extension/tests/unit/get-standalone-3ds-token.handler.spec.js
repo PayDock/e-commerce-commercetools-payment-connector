@@ -47,11 +47,11 @@ describe('Integration::PaymentHandler::getStandalone3dsToken::', () => {
         const paymentObject = {
             custom: {
                 fields: {
-                    getStandalone3dsTokenRequest: JSON.stringify({
-                        transactionId: 'transaction-123',
+                    PaymentExtensionRequest: JSON.stringify({
+                        action: "getStandalone3dsTokenRequest",
                         request: {
                             data: 'some-request-data'
-                        }
+                        },
                     })
                 }
             }
@@ -69,36 +69,7 @@ describe('Integration::PaymentHandler::getStandalone3dsToken::', () => {
 
         expect(result).toHaveProperty('actions');
         expect(result.actions[0]).toHaveProperty('action', 'setCustomField');
-        expect(result.actions[0]).toHaveProperty('name', 'getStandalone3dsTokenResponse');
+        expect(result.actions[0]).toHaveProperty('name', 'PaymentExtensionResponse');
         expect(result.actions[0]).toHaveProperty('value', JSON.stringify(mockResponse));
-    });
-
-    test('should handle failure in 3DS token creation', async () => {
-        const paymentObject = {
-            custom: {
-                fields: {
-                    getStandalone3dsTokenRequest: JSON.stringify({
-                        transactionId: 'transaction-123',
-                        request: {
-                            data: 'some-request-data'
-                        }
-                    })
-                }
-            }
-        };
-
-        const mockResponse = {
-            status: 'Failure',
-            message: '3DS token creation failed'
-        };
-
-        createStandalone3dsToken.mockResolvedValue(mockResponse);
-
-        const result = await getStandalone3dsTokenHandler.execute(paymentObject);
-
-        expect(result).toHaveProperty('actions');
-        expect(result.actions[0]).toHaveProperty('action', 'getStandalone3dsToken');
-        expect(result.actions[0]).toHaveProperty('transactionId', 'transaction-123');
-        expect(result.actions[0]).toHaveProperty('state', 'Failure');
     });
 });

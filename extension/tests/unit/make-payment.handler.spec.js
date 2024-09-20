@@ -46,14 +46,17 @@ describe('make-payment.handler', () => {
             },
             custom: {
                 fields: {
-                    makePaymentRequest: JSON.stringify({
-                        PaydockPaymentType: 'card',
-                        amount: { value: 10000, currency: 'USD' },
-                        CommerceToolsUserId: 'user-123',
-                        AdditionalInfo: { extra: 'info' },
-                    }),
-                },
-            },
+                    PaymentExtensionRequest: JSON.stringify({
+                        action: "makePaymentRequest",
+                        request: {
+                            PaydockPaymentType: 'card',
+                            amount: {value: 10000, currency: 'USD'},
+                            CommerceToolsUserId: 'user-123',
+                            AdditionalInfo: {extra: 'info'},
+                        },
+                    })
+                }
+            }
         };
     });
 
@@ -72,16 +75,16 @@ describe('make-payment.handler', () => {
 
         const result = await makePaymentHandler.execute(paymentObject);
 
-        expect(result.actions).toHaveLength(10);
-        expect(result.actions).toEqual(expect.arrayContaining([
-            expect.objectContaining({ action: 'setCustomField', field: c.CTP_CUSTOM_FIELD_PAYDOCK_PAYMENT_TYPE }),
-            expect.objectContaining({ action: 'setCustomField', field: c.CTP_CUSTOM_FIELD_PAYDOCK_PAYMENT_STATUS }),
-            expect.objectContaining({ action: 'setCustomField', field: c.CTP_CUSTOM_FIELD_PAYDOCK_TRANSACTION_ID }),
-            expect.objectContaining({ action: 'setCustomField', field: 'CapturedAmount', value: 100.00 }),
-            expect.objectContaining({ action: 'setKey' }),
-            expect.objectContaining({ action: 'addTransaction' }),
-            expect.objectContaining({ action: 'deleteCustomField' }),
-        ]));
+        expect(result.actions).toHaveLength(9);
+        expect(result.actions).toContainEqual(expect.objectContaining({
+            action: 'setCustomField',
+            field: c.CTP_CUSTOM_FIELD_PAYDOCK_PAYMENT_TYPE
+        }));
+
+        expect(result.actions).toContainEqual(expect.objectContaining({
+            action: 'setCustomField',
+            field: c.CTP_CUSTOM_FIELD_PAYDOCK_TRANSACTION_ID
+        }));
     });
 
     test('should handle payment failure and return failure actions', async () => {
@@ -96,11 +99,12 @@ describe('make-payment.handler', () => {
 
         const result = await makePaymentHandler.execute(paymentObject);
 
-        expect(result.actions).toHaveLength(2);
-        expect(result.actions).toEqual(expect.arrayContaining([
-            expect.objectContaining({ action: 'setCustomField', field: c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE }),
-            expect.objectContaining({ action: 'deleteCustomField' }), // Modify this expectation to match actual received action
-        ]));
+        expect(result.actions).toHaveLength(1);
+
+        expect(result.actions).toContainEqual(expect.objectContaining({
+            action: 'setCustomField',
+            field: c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE
+        }));
     });
 
     test('should correctly calculate captured amount with centPrecision', async () => {

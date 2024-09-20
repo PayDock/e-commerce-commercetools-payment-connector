@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@commercetools-backend/loggers": "^22.31.0"
+  }
+}

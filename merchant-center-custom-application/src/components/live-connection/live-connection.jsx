@@ -210,6 +210,7 @@ const LiveConnectionForm = () => {
               setVersion(response.version ?? null);
               setId(response.id ?? null);
               setCreatedAt(response.createdAt ?? null);
+              formik.setValues(response.value)
 
               setSuccess(true);
               setLoading(false);
@@ -565,68 +566,6 @@ const LiveConnectionForm = () => {
             </Spacings.Stack>
           </Constraints.Horizontal>
         </CollapsiblePanel>
-
-        {/*
-                <CollapsiblePanel header="Bank accounts" isDefaultClosed={true} className="collapsible-panel">
-                    <Constraints.Horizontal max={'scale'}>
-                        <Spacings.Stack scale="xl">
-
-                            <SelectField
-                                name="bank_accounts_use_on_checkout"
-                                title={intl.formatMessage(messages.bankAccountsCheckoutTitle)}
-                                description={intl.formatMessage(messages.bankAccountsCheckoutDesc)}
-                                isMulti={false}
-                                value={formik.values.bank_accounts_use_on_checkout}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                options={bank_accounts_use_on_checkout_options}
-                                isSearchable={false}
-                                isClearable={false}
-                            />
-
-                            <TextField
-                                name="bank_accounts_gateway_id"
-                                title={intl.formatMessage(messages.banksAccountGatewayId)}
-                                value={formik.values.bank_accounts_gateway_id}
-                                touched={formik.touched.bank_accounts_gateway_id}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                isRequired={false}
-                                errors={formik.errors.bank_accounts_gateway_id}
-                            />
-
-                            <SelectField
-                                name="bank_accounts_bank_account_save"
-                                title={intl.formatMessage(messages.banksAccountSaveTitle)}
-                                description={intl.formatMessage(messages.banksAccountSaveDesc)}
-                                isMulti={false}
-                                value={formik.values.bank_accounts_bank_account_save}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                options={bank_accounts_bank_account_save_options}
-                                isSearchable={false}
-                                isClearable={false}
-                            />
-
-                            {formik.values.bank_accounts_bank_account_save !== 'Disable' && (
-                                <SelectField
-                                    name="bank_accounts_bank_method_save"
-                                    title={intl.formatMessage(messages.banksAccountSaveMethodTitle)}
-                                    isMulti={false}
-                                    value={formik.values.bank_accounts_bank_method_save}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    options={bank_accounts_bank_method_save_options}
-                                    isSearchable={false}
-                                    isClearable={false}
-                                />
-                            )}
-
-                        </Spacings.Stack>
-                    </Constraints.Horizontal>
-                </CollapsiblePanel>
-                */}
-
         <CollapsiblePanel header="Wallets" isDefaultClosed={true} className="collapsible-panel">
           <Constraints.Horizontal max={'scale'}>
             <Spacings.Stack scale="xl">
@@ -853,77 +792,6 @@ const LiveConnectionForm = () => {
                   </Spacings.Stack>
                 </Constraints.Horizontal>
               </CollapsiblePanel>
-              {/*
-                <CollapsiblePanel header="Afterpay v2" isDefaultClosed={true} className="collapsible-panel">
-                    <Constraints.Horizontal max={'scale'}>
-                        <Spacings.Stack scale="xl">
-
-                            <SelectField
-                                name="wallets_afterpay_v2_use_on_checkout"
-                                title={intl.formatMessage(messages.walletAfterpayCheckoutTitle)}
-                                description={intl.formatMessage(messages.walletAfterpayCheckoutDesc)}
-                                isMulti={false}
-                                value={formik.values.wallets_afterpay_v2_use_on_checkout}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                options={wallets_afterpay_v2_use_on_checkout_options}
-                                isSearchable={false}
-                                isClearable={false}
-                            />
-
-                            <TextField
-                                name="wallets_afterpay_v2_gateway_id"
-                                title={intl.formatMessage(messages.walletAfterpayGatewayId)}
-                                value={formik.values.wallets_afterpay_v2_gateway_id}
-                                touched={formik.touched.wallets_afterpay_v2_gateway_id}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                isRequired={false}
-                                errors={formik.errors.wallets_afterpay_v2_gateway_id}
-                            />
-
-                            <SelectField
-                                name="wallets_afterpay_v2_fraud"
-                                title={intl.formatMessage(messages.walletAfterpaySelectFraud)}
-                                isMulti={false}
-                                value={formik.values.wallets_afterpay_v2_fraud}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                options={wallets_afterpay_v2_fraud_options}
-                                isSearchable={false}
-                                isClearable={false}
-                            />
-
-                            {formik.values.wallets_afterpay_v2_fraud !== 'Disable' && (
-                                <TextField
-                                    name="wallets_afterpay_v2_fraud_service_id"
-                                    title={intl.formatMessage(messages.walletAfterpayFraudService)}
-                                    value={formik.values.wallets_afterpay_v2_fraud_service_id}
-                                    touched={formik.touched.wallets_afterpay_v2_fraud_service_id}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    isRequired={false}
-                                    errors={formik.errors.wallets_afterpay_v2_fraud_service_id}
-                                />
-                            )}
-
-                            <SelectField
-                                name="wallets_afterpay_v2_direct_charge"
-                                title={intl.formatMessage(messages.walletAfterpaySelectDirectChargeTitle)}
-                                description={intl.formatMessage(messages.walletAfterpaySelectDirectChargeDescription)}
-                                isMulti={false}
-                                value={formik.values.wallets_afterpay_v2_direct_charge}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                options={wallets_afterpay_v2_direct_charge_options}
-                                isSearchable={false}
-                                isClearable={false}
-                            />
-
-                        </Spacings.Stack>
-                    </Constraints.Horizontal>
-                </CollapsiblePanel>
-            */}
             </Spacings.Stack>
           </Constraints.Horizontal>
         </CollapsiblePanel>

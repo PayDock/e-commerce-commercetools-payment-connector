@@ -14,9 +14,6 @@ async function initApiExtensions(
   const apiExtensionTemplate = await utils.readAndParseJsonFile(
       'resources/api-extension.json',
   )
-  const apiExtensionOrderTemplate = await utils.readAndParseJsonFile(
-      'resources/api-order-extension.json',
-  )
 
   apiExtensionTemplate.destination.authentication = JSON.parse(
       `{` +
@@ -25,12 +22,6 @@ async function initApiExtensions(
       `    }`,
   )
 
-  apiExtensionOrderTemplate.destination.authentication = JSON.parse(
-      `{` +
-      `      "type": "AuthorizationHeader",` +
-      `      "headerValue": "${authHeaderValue}"` +
-      `    }`,
-  )
 
   try {
     const logger = mainLogger.child({
@@ -41,16 +32,7 @@ async function initApiExtensions(
           ctpPaydockIntegrationBaseUrl,
         }),
     )
-
-    const extensionOrderDraft = JSON.parse(
-        _.template(JSON.stringify(apiExtensionOrderTemplate))({
-          ctpPaydockIntegrationBaseUrl,
-        }),
-    )
-
     await utils.deleteElementByKeyIfExists(ctpClient, apiExtensionTemplate.key)
-    await utils.deleteElementByKeyIfExists(ctpClient, apiExtensionOrderTemplate.key)
-    await ctpClient.create(ctpClient.builder.extensions, extensionOrderDraft)
     await ctpClient.create(ctpClient.builder.extensions, extensionDraft)
     logger.info(
         'Successfully created an API extension for payment resource type ' +

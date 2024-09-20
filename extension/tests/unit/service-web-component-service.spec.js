@@ -11,6 +11,8 @@ jest.mock('node-fetch');
 jest.mock('../../src/config/config.js');
 jest.mock('../../src/utils.js');
 
+const  customerObject = jest.requireActual('../../test-data/customer-object.json');
+
 jest.mock('@commercetools-backend/loggers', () => {
     return {
         createApplicationLogger: jest.fn(() => ({
@@ -73,6 +75,7 @@ describe('web-component-service.js', () => {
 
         mockCtpClient = {
             fetchByKey: jest.fn(),
+            fetchById: jest.fn(),
             update: jest.fn(),
             builder: {
                 payments: 'mockPaymentsPath', // Mocking the payments path
@@ -467,7 +470,11 @@ describe('web-component-service.js', () => {
         makePaymentRequestObj.VaultToken = 'new-vault-token';
         makePaymentRequestObj.CommerceToolsUserId = 'user-123';
         makePaymentRequestObj.PaydockPaymentType = 'card';
-
+        mockCtpClient.fetchById.mockResolvedValue({
+            body: {
+                customerObject
+            }
+        });
         mockCtpClient.fetchByKey.mockResolvedValue({
             body: {
                 version: 1,

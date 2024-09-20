@@ -136,17 +136,6 @@
       "inputHint": "MultiLine"
     },
     {
-      "name": "getPaymentMethodsRequest",
-      "label": {
-        "en": "Payment Methods Request"
-      },
-      "type": {
-        "name": "String"
-      },
-      "inputHint": "MultiLine",
-      "required": false
-    },
-    {
       "name": "getVaultTokenRequest",
       "label": {
         "en": "Vault token request"

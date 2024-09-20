@@ -57,7 +57,7 @@ describe('Unit::getPaymentMethods::', () => {
         responseData.actions[0].value = JSON.stringify(sandboxPaymentExtensionResponse);
 
         return request(server)
-            .post('/')
+            .post('/extension')
             .send(requestData)
             .expect(200)
             .then((response) => {
@@ -73,7 +73,7 @@ describe('Unit::getPaymentMethods::', () => {
         responseData.actions[0].value = JSON.stringify(livePaymentExtensionResponse);
 
         return request(server)
-            .post('/')
+            .post('/extension')
             .send(requestData)
             .expect(200)
             .then((response) => {

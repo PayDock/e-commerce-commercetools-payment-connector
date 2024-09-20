@@ -42,7 +42,6 @@ describe('cleanupExtensionResources', () => {
         config.getExtensionConfig.mockReturnValue({ projectKey: 'testProjectKey' });
         ctpClientBuilder.get.mockResolvedValue(mockCtpClient);
         utils.readAndParseJsonFile.mockResolvedValueOnce({ key: 'api-extension-key' })
-            .mockResolvedValueOnce({ key: 'api-order-extension-key' });
         utils.deleteElementByKeyIfExists.mockResolvedValue();
     });
 
@@ -52,9 +51,7 @@ describe('cleanupExtensionResources', () => {
         expect(config.getExtensionConfig).toHaveBeenCalled();
         expect(ctpClientBuilder.get).toHaveBeenCalledWith({ projectKey: 'testProjectKey' });
         expect(utils.readAndParseJsonFile).toHaveBeenCalledWith('resources/api-extension.json');
-        expect(utils.readAndParseJsonFile).toHaveBeenCalledWith('resources/api-order-extension.json');
         expect(utils.deleteElementByKeyIfExists).toHaveBeenCalledWith(mockCtpClient, 'api-extension-key');
-        expect(utils.deleteElementByKeyIfExists).toHaveBeenCalledWith(mockCtpClient, 'api-order-extension-key');
     });
 
     test('should throw an error if cleanup fails', async () => {

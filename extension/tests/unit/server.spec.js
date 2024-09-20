@@ -42,7 +42,7 @@ describe('Uint::Server::', () => {
         }));
 
         return request(server)
-            .post('/')
+            .post('/extension')
             .send({test: 'test'})
             .expect(500)
     })

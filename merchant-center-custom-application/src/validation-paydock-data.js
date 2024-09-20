@@ -10,7 +10,6 @@ class ValidationPaydockData {
             isValid: true,
             errors: []
         };
-
         try {
             let servicesIds = await this.validateCredentials(form, 'access_key' === form.credentials_type);
             result.errors = this.validateGateways(form, servicesIds);
@@ -73,7 +72,7 @@ class ValidationPaydockData {
 
             return await this.validateSecretKey(secret, isToken);
         } catch (error) {
-            throw new Error(error.message || 'Invalid Credentials.')
+            throw new Error('Invalid Credentials.')
         }
     }
 
