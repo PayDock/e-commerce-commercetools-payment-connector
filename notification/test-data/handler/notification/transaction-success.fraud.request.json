@@ -1,0 +1,94 @@
+{
+  "event": "standalone_fraud_check_success",
+  "notification": {
+    "transfer": {
+      "items": []
+    },
+    "schedule": {
+      "authorised_pended_at": "2024-07-30T08:03:16.908Z",
+      "stopped": false
+    },
+    "statistics": {
+      "total_refunded_amount": 0,
+      "full_refund": false,
+      "need_sync": true
+    },
+    "customer": {
+      "first_name": "Yaroslav",
+      "last_name": "Fedyna",
+      "email": "sfedynadev@gmail.com",
+      "phone": "+38093535352",
+      "payment_source": {
+        "vault_token": "fd504f31-7cfd-4dd9-8baa-9dc0d8cd8f2b",
+        "type": "card",
+        "card_name": "Test",
+        "card_number_bin": "51234500",
+        "card_number_last4": "0008",
+        "card_scheme": "mastercard",
+        "expire_month": 1,
+        "expire_year": 39,
+        "address_line1": "21051 Warner Center Lane",
+        "address_line2": "20А",
+        "address_city": "Woodland Hills",
+        "address_postcode": "91367",
+        "address_country": "AF",
+        "gateway_id": "649d84d57083671ee3101900",
+        "gateway_type": "MasterCard",
+        "gateway_name": "TESTDEV_MERCHANT (CBA+google)"
+      }
+    },
+    "id": "66a88218c572aa88f2a486f7",
+    "type": "financial",
+    "amount": 15,
+    "currency": "AUD",
+    "status": "complete",
+    "company_id": "6214a653317a5a7559544be9",
+    "capture": true,
+    "authorization": true,
+    "archived": false,
+    "one_off": true,
+    "reference": "1888cfa6-4f30-48ca-9d81-eae595630a5d",
+    "items": [],
+    "transactions": [
+      {
+        "created_at": "2024-07-30T06:03:04.804Z",
+        "type": "sale",
+        "status": "complete",
+        "amount": 15,
+        "currency": "AUD",
+        "include_authorization": true,
+        "id": "66a88218c572aa88f2a486f8",
+        "external_id": "8b7d7dff-9b8e-446d-b2d7-fc620e91a2fe:12620d1e-597c-40d0-ae46-12359c087793",
+        "external_reference": "421206006563",
+        "pended_at": "2024-07-30T08:03:16.908Z",
+        "updated_at": "2024-07-30T06:03:16.937Z"
+      },
+      {
+        "type": "capture",
+        "status": "complete",
+        "amount": 10,
+        "currency": "AUD",
+        "external_id": "8b7d7dff-9b8e-446d-b2d7-fc620e91a2fe:12620d1e-597c-40d0-ae46-12359c087793",
+        "include_authorization": true,
+        "id": "66a883e7e2e68c534ecf6e00",
+        "created_at": "2024-07-30T06:10:47.802Z",
+        "external_reference": "421206006563"
+      }
+    ],
+    "updated_at": "2024-07-30T06:10:49.715Z",
+    "created_at": "2024-07-30T06:03:04.814Z",
+    "external_id": "8b7d7dff-9b8e-446d-b2d7-fc620e91a2fe:12620d1e-597c-40d0-ae46-12359c087793",
+    "logs_migrated": false,
+    "transaction": {
+      "type": "capture",
+      "status": "complete",
+      "amount": 10,
+      "currency": "AUD",
+      "external_id": "8b7d7dff-9b8e-446d-b2d7-fc620e91a2fe:12620d1e-597c-40d0-ae46-12359c087793",
+      "include_authorization": true,
+      "id": "66a883e7e2e68c534ecf6e00",
+      "created_at": "2024-07-30T06:10:47.802Z",
+      "external_reference": "421206006563"
+    }
+  }
+}

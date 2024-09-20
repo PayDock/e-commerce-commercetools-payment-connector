@@ -1,0 +1,12 @@
+{
+  "gateway_id": "649d84d57083671ee3101900",
+  "capture": true,
+  "billingAddress" :{
+    "firstName": "testCustomerFirstName",
+    "lastName": "testCustomerLastName",
+    "email": "testCustomerEmail@awesome-domain.com",
+    "phone": "+123456789012"
+  },
+  "charge3dsId": null,
+  "_3ds": null
+}

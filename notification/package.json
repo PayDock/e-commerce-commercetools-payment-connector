@@ -1,0 +1,94 @@
+{
+  "name": "commercetools-paydock-integration-notification",
+  "version": "0.0.5",
+  "description": "Part of the integration of Paydock with commercetools responsible to receive and process notifications from Paydock",
+  "type": "module",
+  "scripts": {
+    "test": "jest --config jest.config.js",
+    "check-coverage": "jest --config jest.config.js --coverage",
+    "jest-coverage": "jest --coverage --collectCoverageFrom='src/**/*.js'",
+    "start": "node ./src/init.js",
+    "lint": "eslint --quiet ./src ./test",
+    "check": "npm run lint && prettier --check .",
+    "format": "prettier --write .",
+    "rename-indexfile": "cp index.googleFunction.js index.js",
+    "zip-google-function": "cp index.googleFunction.js index.js && zip -r notification-module.zip src resources .notificationrc index.js package.json && rm index.js",
+    "zip-lambda-function": "cp index.lambda.js index.js && npm ci --production && zip -r notification-module.zip . && rm index.js",
+    "zip-azure-function": "cp notification-trigger/index.azureFunction.js notification-trigger/index.js && npm ci --production && zip -r notification-module.zip . && rm notification-trigger/index.js",
+    "notification:post-deploy": "run-func ./src/post-deployment.js postDeployment",
+    "notification:pre-undeploy": "run-func ./src/pre-undeployment.js preUndeployment"
+  },
+  "keywords": [
+    "payment",
+    "integration",
+    "commercetools",
+    "ctp",
+    "notifications"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PayDock/e-commerce-commercetools-payment-connector"
+  },
+  "author": {
+    "name": "Paydock",
+    "email": "dev@paydock.com"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "contributors": [],
+  "bugs": {
+    "url": "https://github.com/PayDock/e-commerce-commercetools-payment-connector"
+  },
+  "homepage": "https://github.com/PayDock/e-commerce-commercetools-payment-connector",
+  "dependencies": {
+    "@babel/preset-env": "^7.24.6",
+    "@commercetools-backend/loggers": "^22.31.0",
+    "@commercetools/api-request-builder": "6.0.0",
+    "@commercetools/sdk-client": "3.0.0",
+    "@commercetools/sdk-middleware-auth": "7.0.1",
+    "@commercetools/sdk-middleware-http": "7.0.4",
+    "@commercetools/sdk-middleware-queue": "3.0.0",
+    "@commercetools/sdk-middleware-user-agent": "3.0.0",
+    "@commercetools/sync-actions": "5.15.0",
+    "@jest/globals": "^29.7.0",
+    "babel-jest": "^29.7.0",
+    "babel-plugin-transform-import-meta": "^2.2.1",
+    "dotenv": "^16.4.5",
+    "jest": "^29.7.0",
+    "lockfile-lint": "4.13.2",
+    "lodash": "4.17.21",
+    "msw": "^2.3.1",
+    "node-fetch": "3.3.2",
+    "rc": "1.2.8",
+    "run-func": "3.0.0",
+    "serialize-error": "11.0.3",
+    "supertest": "^7.0.0",
+    "verror": "1.10.1"
+  },
+  "devDependencies": {
+    "c8": "8.0.1",
+    "chai": "4.4.1",
+    "chai-as-promised": "7.1.1",
+    "eslint": "8.57.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-import": "2.29.1",
+    "husky": "8.0.3",
+    "lint-staged": "15.2.2",
+    "mocha": "10.3.0",
+    "nock": "13.5.3",
+    "p-map": "7.0.1",
+    "prettier": "3.2.5",
+    "sinon": "17.0.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix",
+    "*.{js,css,md}": "prettier --write"
+  }
+}
