@@ -8,7 +8,7 @@ import config from './config/config.js';
 const {createApplicationLogger} = loggers;
 
 let loggerInstance;
-const logActions = [];
+let logActions = [];
 
 function getLogger() {
     if (!loggerInstance) {
@@ -38,6 +38,9 @@ function addPaydockLog(data) {
     })
 }
 
+function clearLog(){
+    logActions = [];
+}
 function collectRequestData(request) {
     return new Promise((resolve) => {
         const data = [];
@@ -109,5 +112,6 @@ export default {
     handleUnexpectedPaymentError,
     readAndParseJsonFile,
     addPaydockLog,
+    clearLog,
     deleteElementByKeyIfExists
 };

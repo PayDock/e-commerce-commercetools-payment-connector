@@ -22,6 +22,7 @@ async function processRequest(request, response) {
     }
     let paymentObject = {}
     try {
+        httpUtils.clearLog();
         const authToken = getAuthorizationRequestHeader(request)
         paymentObject = await _getPaymentObject(request)
         const paymentResult = await paymentHandler.handlePaymentByExtRequest(

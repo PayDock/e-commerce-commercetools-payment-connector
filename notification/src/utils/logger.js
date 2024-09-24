@@ -39,6 +39,9 @@ function addPaydockLog(data) {
     })
 }
 
+function clearLog(){
+    logActions = [];
+}
 function getLogActions(){
     const result = logActions
     logActions = [];
@@ -46,4 +49,4 @@ function getLogActions(){
     return result;
 }
 
-export {getLogger, addPaydockLog, getLogActions};
+export {getLogger, addPaydockLog,  clearLog, getLogActions};

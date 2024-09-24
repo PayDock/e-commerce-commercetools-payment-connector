@@ -1,7 +1,7 @@
 import utils from '../../utils/commons.js'
 import { isRecoverableError, getErrorCause } from '../../utils/error-utils.js'
 import notificationHandler from '../../handler/notification/notification.handler.js'
-import { getLogger } from '../../utils/logger.js'
+import { clearLog, getLogger } from '../../utils/logger.js'
 
 const logger = getLogger()
 
@@ -13,6 +13,7 @@ async function handleNotification(request, response) {
     return utils.sendResponse(response, 200)
   }
   try {
+    clearLog();
     const notificationResponse = await utils.getNotificationFromRequest(request);
     await notificationHandler.processNotification(notificationResponse)
     return sendAcceptedResponse(response)
