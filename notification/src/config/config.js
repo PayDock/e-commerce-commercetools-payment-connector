@@ -47,7 +47,7 @@ function getNotificationConfig() {
   }
 }
 
-async function decrypt(data, clientSecret) {
+function decrypt(data, clientSecret) {
   const keyArrayLen = clientSecret.length;
 
   return data.split("").map((dataElement, index) => {

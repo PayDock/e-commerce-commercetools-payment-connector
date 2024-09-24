@@ -192,8 +192,6 @@ async function cardFlow({configurations, input, amount, currency, vaultToken, cu
     let result;
     switch (true) {
         case (configurations.card_card_save === 'Enable' && !!customerId):
-        case (configurations.card_card_save === 'Enable' && configurations.card_card_method_save !== 'Vault token' && input.SaveCard):
-
             result = await cardCustomerCharge({
                 configurations,
                 input,
@@ -231,6 +229,18 @@ async function cardFlow({configurations, input, amount, currency, vaultToken, cu
             break;
         case (configurations.card_fraud === 'Standalone Fraud' || configurations.card_fraud === 'In-built Fraud'):
             result = await cardFraudCharge({
+                configurations,
+                input,
+                amount,
+                currency,
+                vaultToken,
+                customerId,
+                paymentObject
+            });
+            break;
+        case (configurations.card_card_save === 'Enable' && configurations.card_card_method_save !== 'Vault token' && input.SaveCard):
+
+            result = await cardCustomerCharge({
                 configurations,
                 input,
                 amount,
@@ -1004,7 +1014,7 @@ function generateCustomerRequest(input, vaultToken, type, configurations) {
     return customerRequest;
 }
 
-async function createCustomerAndSaveVaultToken({configurations, input, vaultToken, type, paymentObject}) {
+async function createCustomerAndSaveVaultToken({configurations, input, vaultToken, type}) {
     let customerId = null;
     const customerRequest = generateCustomerRequest(input, vaultToken, type, configurations);
     const customerResponse = await createCustomer(customerRequest);
