@@ -73,68 +73,70 @@ async function processNotification(
 
 async function processWebhook(event, payment, notification, ctpClient) {
     const result = {}
-    const {status, paymentStatus, orderStatus} = getNewStatuses(notification)
-    const oldStatus = payment.custom.fields.PaydockPaymentStatus;
-    let customStatus = status;
-    const chargeId = notification._id
-    const currentPayment = payment
-    const currentVersion = payment.version
-    const updateActions = [];
+    const order = await ctpClient.fetchOrderByNymber(ctpClient.builder.orders, payment.id)
+    if (order) {
+        const {status, paymentStatus, orderStatus} = getNewStatuses(notification)
+        const oldStatus = payment.custom.fields.PaydockPaymentStatus;
+        let customStatus = status;
+        const chargeId = notification._id
+        const currentPayment = payment
+        const currentVersion = payment.version
+        const updateActions = [];
 
-    if(status === oldStatus){
-        return result;
-    }
-    if (status === 'paydock-paid') {
-        const capturedAmount = parseFloat(notification.transaction.amount) || 0
-        const orderAmount = calculateOrderAmount(payment);
-        customStatus = capturedAmount < orderAmount ? 'paydock-p-paid' : 'paydock-paid'
+        if (status === oldStatus) {
+            return result;
+        }
+        if (status === 'paydock-paid') {
+            const capturedAmount = parseFloat(notification.transaction.amount) || 0
+            const orderAmount = calculateOrderAmount(payment);
+            customStatus = capturedAmount < orderAmount ? 'paydock-p-paid' : 'paydock-paid'
+            updateActions.push({
+                action: 'setCustomField',
+                name: 'CapturedAmount',
+                value: capturedAmount
+            })
+        }
         updateActions.push({
             action: 'setCustomField',
-            name: 'CapturedAmount',
-            value: capturedAmount
+            name: 'PaydockPaymentStatus',
+            value: customStatus
+        })
+
+        let operation = notification.type
+        operation = operation ? operation.toLowerCase() : 'undefined'
+        operation = operation.charAt(0).toUpperCase() + operation.slice(1)
+
+        updateActions.push({
+            action: 'setCustomField',
+            name: 'PaymentExtensionRequest',
+            value: JSON.stringify({
+                action: 'FromNotification',
+                request: {}
+            })
+        });
+
+        try {
+            await ctpClient.update(
+                ctpClient.builder.payments,
+                currentPayment.id,
+                currentVersion,
+                updateActions.concat(getLogActions())
+            );
+
+            await updateOrderStatus(ctpClient, currentPayment.id, paymentStatus, orderStatus);
+            result.status = 'Success'
+        } catch (error) {
+            result.status = 'Failure'
+            result.message = error
+        }
+
+        addPaydockLog({
+            paydockChargeID: chargeId,
+            operation,
+            status: result.status,
+            message: result.message ?? ''
         })
     }
-    updateActions.push({
-        action: 'setCustomField',
-        name: 'PaydockPaymentStatus',
-        value: customStatus
-    })
-
-    let operation = notification.type
-    operation = operation ? operation.toLowerCase() : 'undefined'
-    operation = operation.charAt(0).toUpperCase() + operation.slice(1)
-
-    updateActions.push({
-        action: 'setCustomField',
-        name: 'PaymentExtensionRequest',
-        value: JSON.stringify({
-            action: 'FromNotification',
-            request: {}
-        })
-    });
-
-    try {
-        await ctpClient.update(
-            ctpClient.builder.payments,
-            currentPayment.id,
-            currentVersion,
-            updateActions.concat(getLogActions())
-        );
-
-        await updateOrderStatus(ctpClient, currentPayment.id, paymentStatus, orderStatus);
-        result.status = 'Success'
-    } catch (error) {
-        result.status = 'Failure'
-        result.message = error
-    }
-
-    addPaydockLog({
-        paydockChargeID: chargeId,
-        operation,
-        status: result.status,
-        message: result.message ?? ''
-    })
-
     return result
 }
 
@@ -214,7 +216,7 @@ async function processFraudNotificationComplete(event, payment, notification, ct
     if (cacheData._3ds) {
         const attachResponse = await createCharge({
             fraud_charge_id: fraudChargeId
-        }, {action: 'standalone-fraud-attach', updatedChargeId}, true)
+        }, {action: 'standalone-fraud-attach', chargeId: updatedChargeId}, true)
         if (attachResponse?.error) {
             result.status = 'UnfulfilledCondition'
             result.message = `Can't fraud attach.${errorMessageToString(attachResponse)}`
