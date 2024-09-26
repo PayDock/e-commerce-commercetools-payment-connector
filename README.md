@@ -1,4 +1,4 @@
-св# Paydock Payment Connector for commercetools
+# Paydock Payment Connector for commercetools
 
 ## Overview
 
