@@ -2,6 +2,10 @@ const config = {
     name: 'paydock-app',
     entryPointUriPath: '${env:ENTRY_POINT_URI_PATH}',
     cloudIdentifier: '${env:CLOUD_IDENTIFIER}',
+    proxy: {
+        forwardingUrl: `https://api.${process.env.APP_REGION}.commercetools.com`,
+        replaceUrlProtocol: true,
+    },
     env: {
         development: {
             initialProjectKey: '${env:APP_PROJECT_KEY}',

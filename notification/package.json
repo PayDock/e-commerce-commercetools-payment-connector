@@ -1,6 +1,6 @@
 {
   "name": "commercetools-paydock-integration-notification",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Part of the integration of Paydock with commercetools responsible to receive and process notifications from Paydock",
   "type": "module",
   "scripts": {

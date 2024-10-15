@@ -86,21 +86,28 @@ async function getPaydockConfig(type = 'all', disableCache = false) {
             }
         }))
     }
+    return getConfigByType(type)
+}
+
+
+function getConfigByType(type) {
     switch (type) {
         case 'connection':
-            if (paydockConfig['sandbox']?.sandbox_mode === 'Yes') {
-                paydockConfig['sandbox'].api_url = config.paydockSandboxUrl
-                return paydockConfig['sandbox'] ?? {};
-            }
-            paydockConfig['live'].api_url = config.paydockLiveUrl;
-            return paydockConfig['live'] ?? {};
-
+            return getConnectionConfig();
         case 'widget:':
             return paydockConfig['live'] ?? {};
         default:
-            return paydockConfig
+            return paydockConfig;
     }
+}
 
+function getConnectionConfig() {
+    if (paydockConfig['sandbox']?.sandbox_mode === 'Yes') {
+        paydockConfig['sandbox'].api_url = config.paydockSandboxUrl;
+        return paydockConfig['sandbox'] ?? {};
+    }
+    paydockConfig['live'].api_url = config.paydockLiveUrl;
+    return paydockConfig['live'] ?? {};
 }
 
 
