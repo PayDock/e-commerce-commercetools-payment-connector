@@ -1,25 +1,65 @@
-import { CHARGE_STATUSES } from './constants';
+import {CHARGE_STATUSES} from './constants';
 import PaydockApiAdaptor from './paydock-api-adaptor';
 import {decrypt, encrypt} from "./helpers";
 
 class CommerceToolsAPIAdapter {
     constructor(env) {
         this.env = env;
+        this.clientId = env.clientId;
+        this.clientSecret = env.clientSecret;
         this.projectKey = env.projectKey;
         this.region = env.region;
+        this.accessToken = null;
+        this.tokenExpirationTime = null;
         this.arrayPaydockStatus = CHARGE_STATUSES;
-        this.proxyUrl = '/proxy/commercetools';
+
+    }
+    async setAccessToken(accessToken, tokenExpirationInSeconds) {
+        this.accessToken = accessToken;
+        const tokenExpiration = new Date();
+        tokenExpiration.setSeconds(tokenExpiration.getSeconds() + tokenExpirationInSeconds);
+        this.tokenExpirationTime = tokenExpiration.getTime();
+    }
+
+    async getAccessToken() {
+        const currentTimestamp = new Date().getTime();
+        if (!this.accessToken || currentTimestamp > this.tokenExpirationTime) {
+            await this.authenticate();
+        }
+        return this.accessToken;
+    }
+
+    async authenticate() {
+        try {
+            const response = await fetch(`/${this.env.projectKey}/api/oauth/token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    grant_type: 'client_credentials',
+                    scope: `manage_orders:${this.env.projectKey} manage_payments:${this.env.projectKey}`
+                })
+            });
+
+            const authResult = await response.json();
+            await this.setAccessToken(authResult.access_token, authResult.expires_in);
+        } catch (error) {
+            throw new Error('Failed to authenticate');
+        }
     }
 
     async makeRequest(endpoint, method = 'GET', body = null) {
         try {
-            const apiUrl = `${this.proxyUrl}${endpoint}`;
+            const accessToken = await this.getAccessToken();
+            const apiUrl = `/${this.env.projectKey}/api${endpoint}`;
             const response = await fetch(apiUrl, {
-                method,
+                body: body ? JSON.stringify(body) : null,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`,
                 },
-                body: body ? JSON.stringify(body) : null,
+                method: method,
             });
 
             if (!response.ok) {
@@ -38,8 +78,8 @@ class CommerceToolsAPIAdapter {
         let requestData = {
             id: data.id ?? crypto.randomUUID(),
             version: data.version ?? 0,
-            createdAt: data.createdAt ?? new Date().toISOString(),
-            lastModifiedAt: new Date().toISOString(),
+            createdAt: data.createdAt ?? new Date().toString(),
+            lastModifiedAt: new Date().toString(),
             container: 'paydockConfigContainer',
             key: group ?? 'empty',
             value: data.value ?? null,
@@ -80,11 +120,11 @@ class CommerceToolsAPIAdapter {
         if (objectNotificationUrl.results.length) {
             return objectNotificationUrl.results[0].value;
         }
-        return null;
+        return null
     }
 
     async getConfigs(group) {
-        let data = await this.makeRequest(`/custom-objects/paydockConfigContainer/${group}`);
+        let data = await this.makeRequest('/custom-objects/paydockConfigContainer/' + group);
 
         if (data.value.credentials_access_key) {
             data.value.credentials_access_key = await decrypt(data.value.credentials_access_key, this.clientSecret);
@@ -112,40 +152,65 @@ class CommerceToolsAPIAdapter {
                         operation: this.getStatusByKey(interactionLog.fields.operation),
                         status: interactionLog.fields.status,
                         message: message,
-                    });
-                });
+                    })
+                })
             });
         }
 
         return logs.sort((first, second) => {
             const date1 = Date.parse(first.date);
             const date2 = Date.parse(second.date);
-            return date2 - date1;
-        });
+
+            return date2 - date1
+        })
     }
 
+
     getStatusByKey(statusKey) {
-        return this.arrayPaydockStatus[statusKey] ?? statusKey;
+        if (this.arrayPaydockStatus[statusKey] !== undefined) {
+            return this.arrayPaydockStatus[statusKey];
+        }
+        return statusKey;
     }
+
 
     collectArrayPayments(payments, paymentsArray) {
         if (!payments.results) return;
 
         payments.results.forEach((payment) => {
-            if (!payment.custom.fields.AdditionalInformation) {
+            if (payment.custom.fields.AdditionalInformation === undefined) {
                 return;
             }
             let customFields = payment.custom.fields;
-            let additionalFields = JSON.parse(customFields.AdditionalInformation);
-            let billingInformation = this.convertInfoToString(additionalFields.BillingInformation ?? '-');
-            let shippingInformation = this.convertInfoToString(additionalFields.ShippingInformation ?? '-');
-            shippingInformation = billingInformation === shippingInformation ? '-' : shippingInformation;
+            let additionalFields = customFields.AdditionalInformation;
+            if (typeof additionalFields !== 'object') {
+                additionalFields = JSON.parse(additionalFields);
+            }
+            let billingInformation = additionalFields.BillingInformation ?? '-';
+            let shippingInformation = additionalFields.ShippingInformation ?? '-';
+            if (shippingInformation != '-') {
+                if (typeof shippingInformation !== 'object') {
+                    shippingInformation = JSON.parse(shippingInformation);
+                }
+                shippingInformation = this.convertInfoToString(shippingInformation);
+            }
+            if (billingInformation !== '-') {
+                if (typeof billingInformation !== 'object') {
+                    billingInformation = JSON.parse(billingInformation);
+                }
+                billingInformation = this.convertInfoToString(billingInformation);
+            }
+            shippingInformation = billingInformation == shippingInformation ? '-' : shippingInformation;
 
-            let amount = payment.amountPlanned.centAmount / (10 ** payment.amountPlanned.fractionDigits);
 
+            let amount = payment.amountPlanned.centAmount;
+            if (payment.amountPlanned.type === 'centPrecision') {
+                const fraction = 10 ** payment.amountPlanned.fractionDigits;
+                amount = amount / fraction;
+            }
             paymentsArray[payment.id] = {
                 id: payment.id,
-                amount,
+                amount: amount,
                 currency: payment.amountPlanned.currencyCode,
                 createdAt: payment.createdAt,
                 lastModifiedAt: payment.lastModifiedAt,
@@ -161,30 +226,20 @@ class CommerceToolsAPIAdapter {
     }
 
     convertInfoToString(info) {
-        if (typeof info !== 'object') {
-            return '-';
-        }
-        const name = info.name ?? '-';
-        const address = info.address ?? '-';
-        return `Name: ${name} \nAddress: ${address}`;
+        let name = info['name'] ?? '-';
+        let address = info['address'] ?? '-';
+        return 'Name: ' + name + ' \n' + 'Address: ' + address;
     }
 
     async getOrders() {
         try {
             const paydockOrders = [];
             const paymentsArray = [];
-            const payments = await this.makeRequest(
-                '/payments?where=' +
-                encodeURIComponent('paymentMethodInfo(method="paydock-pay") and custom(fields(AdditionalInformation is not empty))') +
-                '&sort=createdAt+desc&limit=500'
-            );
+            const payments = await this.makeRequest('/payments?where=' + encodeURIComponent('paymentMethodInfo(method="paydock-pay") and custom(fields(AdditionalInformation is not empty))') + '&sort=createdAt+desc&limit=500');
             this.collectArrayPayments(payments, paymentsArray);
-
             if (paymentsArray) {
-                const orderQuery = '"' + Object.keys(paymentsArray).join('","') + '"';
-                const orders = await this.makeRequest(
-                    '/orders?where=' + encodeURIComponent(`paymentInfo(payments(id in(${orderQuery})))`) + '&sort=createdAt+desc&limit=500'
-                );
+                let orderQuery = '"' + Object.keys(paymentsArray).join('","') + '"';
+                const orders = await this.makeRequest('/orders?where=' + encodeURIComponent('paymentInfo(payments(id in(' + orderQuery + ')))') + '&sort=createdAt+desc&limit=500');
                 await this.collectArrayOrders(orders, paymentsArray, paydockOrders);
             }
             return paydockOrders;
@@ -197,9 +252,8 @@ class CommerceToolsAPIAdapter {
         const orderId = data.orderId;
         let response = {};
         let error = null;
-
         try {
-            const payment = await this.makeRequest(`/payments/${orderId}`);
+            const payment = await this.makeRequest('/payments/' + orderId);
             if (payment) {
                 const requestData = {
                     version: payment.version,
@@ -215,19 +269,29 @@ class CommerceToolsAPIAdapter {
                     ],
                 };
 
-                const updateStatusResponse = await this.makeRequest(`/payments/${orderId}`, 'POST', requestData);
-                const paymentExtensionResponse = updateStatusResponse.custom?.fields?.PaymentExtensionResponse;
-                if (!paymentExtensionResponse || !paymentExtensionResponse.status) {
-                    error = paymentExtensionResponse ? paymentExtensionResponse.message : 'Error updating status of payment';
+                let updateStatusResponse = await this.makeRequest('/payments/' + orderId, 'POST', requestData);
+                let paymentExtensionResponse = updateStatusResponse.custom?.fields?.PaymentExtensionResponse;
+                if (!paymentExtensionResponse) {
+                    error = 'Error update status of payment';
+                } else {
+                    paymentExtensionResponse = JSON.parse(paymentExtensionResponse);
+                    if (!paymentExtensionResponse.status) {
+                        error = paymentExtensionResponse.message;
+                    }
                 }
             } else {
                 error = 'Error fetching payment';
             }
         } catch (err) {
-            return { success: false, message: 'Error updating status of payment' };
+            return {success: false, message: 'Error update status of payment'};
         }
 
-        response = error ? { success: false, message: error } : { success: true };
+        if (error) {
+            response = {success: false, message: error};
+        } else {
+            response = {success: true};
+        }
+
         return response;
     }
 
@@ -249,8 +313,11 @@ class CommerceToolsAPIAdapter {
 
     collectArrayOrdersPayments(orderPayments, paymentsArray, objOrder) {
         for (const payment of orderPayments) {
-            const currentPayment = paymentsArray[payment.id];
-            if (currentPayment !== undefined) {
+            if (paymentsArray[payment.id] !== undefined) {
+                let currentPayment = paymentsArray[payment.id];
+                let refundAmount = currentPayment.refundAmount > 0 ? Math.round(currentPayment.refundAmount * 100) / 100 : currentPayment.refundAmount;
+                let capturedAmount = currentPayment.capturedAmount > 0 ? Math.round(currentPayment.capturedAmount * 100) / 100 : currentPayment.capturedAmount;
+
                 objOrder.amount = currentPayment.amount;
                 objOrder.currency = currentPayment.currency;
                 objOrder.created_at = currentPayment.createdAt;
@@ -261,12 +328,13 @@ class CommerceToolsAPIAdapter {
                 objOrder.paydock_transaction = currentPayment.paydockChargeId;
                 objOrder.shipping_information = currentPayment.shippingInfo;
                 objOrder.billing_information = currentPayment.billingInfo;
-                objOrder.captured_amount = currentPayment.capturedAmount;
-                objOrder.refund_amount = currentPayment.refundAmount;
-                objOrder.possible_amount_captured = currentPayment.amount - currentPayment.capturedAmount;
+                objOrder.captured_amount = capturedAmount;
+                objOrder.refund_amount = refundAmount;
+                objOrder.possible_amount_captured = currentPayment.amount - capturedAmount;
             }
         }
     }
+
 }
 
 export default CommerceToolsAPIAdapter;
