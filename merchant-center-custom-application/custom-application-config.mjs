@@ -21,12 +21,6 @@ const config = {
         view: [],
         manage: ['manage_orders','manage_payments', 'manage_project', 'manage_order_edits'],
     },
-    proxyRoutes: {
-        commercetools: {
-            uri: `/${process.env.APP_PROJECT_KEY}/api`,
-            forwardHeaders: ['Authorization', 'X-Correlation-ID'],
-        },
-    },
     icon: '${path:@commercetools-frontend/assets/application-icons/rocket.svg}',
     mainMenuLink: {
         defaultLabel: 'Paydock Settings',

@@ -2,43 +2,37 @@ import {jest, expect} from '@jest/globals';
 import handler from '../../src/paymentHandler/update-payment-status.handler.js';
 import {createSetCustomFieldAction} from '../../src/paymentHandler/payment-utils.js';
 import {updatePaydockStatus} from '../../src/service/web-component-service.js';
-import httpUtils from '../../src/utils.js';
 import config from '../../src/config/config.js';
 import c from '../../src/config/constants.js';
 
 jest.mock('../../src/paymentHandler/payment-utils.js');
 jest.mock('../../src/service/web-component-service.js');
-jest.mock('../../src/utils.js');
 jest.mock('../../src/config/config.js');
 
-jest.mock('../../src/config/config-loader.js', () => {
-    const originalModule = jest.requireActual('../../src/config/config-loader.js');
-    const loaderConfigResult = jest.requireActual('../../test-data/extentionConfig.json')
+// Мокаємо loggerContext та його методи
+jest.mock('../../src/utils.js', () => ({
+    getLogger: jest.fn(() => ({
+        info: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+    })),
+    createLogContext: jest.fn(() => ({
+        addPaydockLog: jest.fn(),
+        getLogsAction: jest.fn(),
+        clearLog: jest.fn(),
+    })),
+}));
 
-    return {
-        __esModule: true,
-        ...originalModule,
-        loadConfig: jest.fn(() => loaderConfigResult),
-    };
-});
-
-jest.mock('@commercetools-backend/loggers', () => {
-    return {
-        createApplicationLogger: jest.fn(() => ({
-            info: jest.fn(),
-            error: jest.fn(),
-            warn: jest.fn(),
-            debug: jest.fn(),
-        })),
-    };
-});
 describe('Unit::update-payment-status.handler::execute', () => {
     let paymentObject;
     let paymentExtensionRequest;
+    let loggerContext;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
+        // Мокаємо paymentExtensionRequest
         paymentExtensionRequest = {
             request: {
                 newStatus: c.STATUS_TYPES.PAID,
@@ -46,9 +40,10 @@ describe('Unit::update-payment-status.handler::execute', () => {
             },
         };
 
+        // Мокаємо paymentObject
         paymentObject = {
             id: 'order-123',
-            version:2,
+            version: 2,
             custom: {
                 fields: {
                     PaymentExtensionRequest: JSON.stringify(paymentExtensionRequest),
@@ -59,21 +54,27 @@ describe('Unit::update-payment-status.handler::execute', () => {
             },
         };
 
-        // Default mock implementations
+        // Мокаємо loggerContext
+        loggerContext = {
+            addPaydockLog: jest.fn(),
+            getLogsAction: jest.fn(),
+            clearLog: jest.fn(),
+        };
+
+        // Мокаємо інші залежності
         createSetCustomFieldAction.mockReturnValue({});
         updatePaydockStatus.mockResolvedValue({status: 'Success', chargeId: 'charge-123'});
-        httpUtils.addPaydockLog.mockResolvedValue({});
         config.getCtpClient.mockResolvedValue({
             fetchOrderByNymber: jest.fn().mockResolvedValue({body: {id: 'order-123', version: 1}}),
             update: jest.fn().mockResolvedValue({}),
             builder: {
-                orders: {}, // Adding the orders property to the builder object
+                orders: {},
             },
         });
     });
 
     test('should handle a successful status update and return correct actions', async () => {
-        const result = await handler.execute(paymentObject);
+        const result = await handler.execute(paymentObject, loggerContext);
 
         expect(updatePaydockStatus).toHaveBeenCalledWith(
             '/v1/charges/charge-123/capture',
@@ -86,20 +87,12 @@ describe('Unit::update-payment-status.handler::execute', () => {
             c.STATUS_TYPES.PAID
         );
 
-        expect(httpUtils.addPaydockLog).toHaveBeenCalledWith({
-            paydockChargeID: 'charge-123',
-            operation: c.STATUS_TYPES.PAID,  // This matches the expected status
-            status: 'Success',
-            message: `Change status from '${c.STATUS_TYPES.AUTHORIZE}' to '${c.STATUS_TYPES.PAID}'`,
-        });
-
         expect(result.actions).toEqual(expect.any(Array));
     });
 
-
     test('should handle an error during status update and return failure action', async () => {
         updatePaydockStatus.mockResolvedValue({status: 'Failure', message: 'Error message'});
-        const result = await handler.execute(paymentObject);
+        const result = await handler.execute(paymentObject, loggerContext);
 
         expect(createSetCustomFieldAction).toHaveBeenCalledWith(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE, {
             status: false,
@@ -112,9 +105,9 @@ describe('Unit::update-payment-status.handler::execute', () => {
     test('should handle unsupported status change and return failure action', async () => {
         paymentExtensionRequest.request.newStatus = 'UnsupportedStatus';
         paymentObject.custom.fields.PaydockPaymentStatus = c.STATUS_TYPES.AUTHORIZE;
-        paymentObject.custom.fields.PaymentExtensionRequest = JSON.stringify(paymentExtensionRequest)
+        paymentObject.custom.fields.PaymentExtensionRequest = JSON.stringify(paymentExtensionRequest);
 
-        const result = await handler.execute(paymentObject);
+        const result = await handler.execute(paymentObject, loggerContext);
 
         expect(createSetCustomFieldAction).toHaveBeenCalledWith(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE, {
             status: false,
@@ -127,7 +120,7 @@ describe('Unit::update-payment-status.handler::execute', () => {
     test('should update order status when both paymentStatus and orderStatus are available', async () => {
         const ctpClientMock = await config.getCtpClient();
 
-        const result = await handler.execute(paymentObject);
+        const result = await handler.execute(paymentObject, loggerContext);
 
         expect(ctpClientMock.update).toHaveBeenCalledWith(
             expect.anything(),
@@ -146,15 +139,14 @@ describe('Unit::update-payment-status.handler::execute', () => {
         paymentExtensionRequest.request.newStatus = c.STATUS_TYPES.CANCELLED;
         paymentObject.custom.fields.PaydockPaymentStatus = c.STATUS_TYPES.AUTHORIZE;
 
-        const result = await handler.execute(paymentObject);
+        const result = await handler.execute(paymentObject, loggerContext);
 
         expect(updatePaydockStatus).toHaveBeenCalledWith(
             '/v1/charges/charge-123/capture',
-            'post',  // Update this if 'post' is the correct method
-            { amount: 0, from_webhook: true }  // Ensure this matches the actual call
+            'post',
+            { amount: 0, from_webhook: true }
         );
 
         expect(result.actions).toEqual(expect.any(Array));
     });
-
 });

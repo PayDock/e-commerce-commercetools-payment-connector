@@ -2,9 +2,9 @@ import http from 'http'
 import url from 'url'
 import utils from './utils/commons.js'
 import { routes } from './routes.js'
-import { getLogger } from './utils/logger.js'
+import logger  from './utils/logger.js'
 
-const logger = getLogger()
+const paydockLogger = logger.getLogger()
 
 function getHandlerNameFromUrl(parts) {
   return parts.path?.split('/')?.slice(-2)?.[0] ?? ''
@@ -19,7 +19,7 @@ function setupServer() {
       try {
         await route(request, response)
       } catch (err) {
-        logger.error(
+        paydockLogger.error(
           err,
           `Unexpected error when processing URL ${JSON.stringify(parts)}`,
         )

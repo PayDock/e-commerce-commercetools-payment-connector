@@ -39,7 +39,6 @@ async function getCtpClient() {
     }
     return ctpClient;
 }
-
 async function getPaydockApiUrl() {
     const paydockC = await getPaydockConfig('connection');
     return paydockC.api_url;

@@ -6,7 +6,7 @@ import {
 import c from '../config/constants.js'
 import {makePayment} from '../service/web-component-service.js'
 
-async function execute(paymentObject) {
+async function execute(paymentObject, loggerContext) {
     const paymentExtensionRequest = JSON.parse(paymentObject.custom.fields.PaymentExtensionRequest)
     const makePaymentRequestObj = paymentExtensionRequest?.request
     const additionalInfo  = makePaymentRequestObj.AdditionalInfo;
@@ -17,7 +17,7 @@ async function execute(paymentObject) {
         makePaymentRequestObj.amount.value = capturedAmount;
     }
     let actions = []
-    const [response] = await Promise.all([makePayment(makePaymentRequestObj,paymentObject)])
+    const [response] = await Promise.all([makePayment(makePaymentRequestObj,paymentObject, loggerContext)])
     if (response.status === 'Failure') {
         const errorMessage = response.message ?? "Invalid transaction details"
         actions.push(createSetCustomFieldAction(c.CTP_INTERACTION_PAYMENT_EXTENSION_RESPONSE, JSON.stringify({

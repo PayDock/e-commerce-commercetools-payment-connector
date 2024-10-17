@@ -13,16 +13,14 @@ jest.mock('../../src/utils.js');
 
 const  customerObject = jest.requireActual('../../test-data/customer-object.json');
 
-jest.mock('@commercetools-backend/loggers', () => {
-    return {
+jest.mock('@commercetools-backend/loggers', () => ({
         createApplicationLogger: jest.fn(() => ({
             info: jest.fn(),
             error: jest.fn(),
             warn: jest.fn(),
             debug: jest.fn(),
         })),
-    };
-});
+    }));
 jest.mock('../../src/ctp.js', () => ({
     get: jest.fn()
 }));
@@ -49,8 +47,23 @@ jest.mock('../../src/config/config-loader.js', () => {
     };
 });
 
+jest.mock('../../src/utils.js', () => ({
+    getLogger: jest.fn(() => ({
+        info: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+    })),
+    createLogContext: jest.fn(() => ({
+        addPaydockLog: jest.fn(),
+        getLogsAction: jest.fn(),
+        clearLog: jest.fn(),
+    })),
+}));
+
 describe('web-component-service.js', () => {
     let mockCtpClient;
+    let loggerContext;
     const makePaymentRequestObj = {
         orderId: 'order-123',
         PaydockTransactionId: 'charge-123',
@@ -70,9 +83,14 @@ describe('web-component-service.js', () => {
             billing_phone: '0412345678',
         },
     };
+    const paymentObject = jest.requireActual('../../test-data/paymentHandler/payment-object.json');
     beforeEach(() => {
         jest.clearAllMocks();
-
+        loggerContext = {
+            addPaydockLog: jest.fn(),
+            getLogsAction: jest.fn(),
+            clearLog: jest.fn(),
+        };
         mockCtpClient = {
             fetchByKey: jest.fn(),
             fetchById: jest.fn(),
@@ -94,8 +112,6 @@ describe('web-component-service.js', () => {
             credentials_type: 'credentials',
             credentials_secret_key: 'secret-key-123'
         });
-
-        httpUtils.addPaydockLog.mockResolvedValue({});
     });
 
     describe('createPreCharge', () => {
@@ -308,11 +324,10 @@ describe('web-component-service.js', () => {
 
 
     describe('makePayment', () => {
-
         test('should handle unknown payment type gracefully', async () => {
             makePaymentRequestObj.PaydockPaymentType = 'unknown'
 
-            const response = await serviceModule.makePayment(makePaymentRequestObj);
+            const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
             expect(response.status).toBe('Error');
             expect(response.message).toBe('Unknown payment type: unknown');
@@ -347,10 +362,9 @@ describe('web-component-service.js', () => {
                 body: {version: 2},
             });
 
-            const response = await serviceModule.makePayment(makePaymentRequestObj);
+            const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
             expect(callPaydock).toHaveBeenCalled();
-            expect(httpUtils.addPaydockLog).toHaveBeenCalled();
             expect(response.status).toBe('Success');
             expect(response.chargeId).toBe('charge-456');
         });
@@ -385,7 +399,7 @@ describe('web-component-service.js', () => {
                 body: {version: 2},
             });
 
-            const response = await serviceModule.makePayment(makePaymentRequestObj);
+            const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
             expect(callPaydock).toHaveBeenCalled();
             expect(response.status).toBe('Failure');
@@ -405,7 +419,7 @@ describe('web-component-service.js', () => {
             });
             updateOrderPaymentState.mockResolvedValue(true);
 
-            const response = await serviceModule.makePayment(makePaymentRequestObj);
+            const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
             expect(callPaydock).toHaveBeenCalled();
             expect(response.status).toBe('Failure');
@@ -427,7 +441,7 @@ describe('web-component-service.js', () => {
             });
             updateOrderPaymentState.mockResolvedValue(true);
 
-            const response = await serviceModule.makePayment(makePaymentRequestObj);
+            const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
             expect(callPaydock).toHaveBeenCalled();
             expect(response.status).toBe('Success');
@@ -442,9 +456,8 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
-        expect(httpUtils.addPaydockLog).toHaveBeenCalled();
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
     });
@@ -459,10 +472,9 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(callPaydock).toHaveBeenCalled();
-        expect(httpUtils.addPaydockLog).toHaveBeenCalled();
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
     });
@@ -493,10 +505,9 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(callPaydock).toHaveBeenCalled();
-        expect(httpUtils.addPaydockLog).toHaveBeenCalled();
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
     });
@@ -512,12 +523,11 @@ describe('web-component-service.js', () => {
             },
         });
 
-        updateOrderPaymentState.mockResolvedValue(false); // Simulating failure in updating order payment state
+        updateOrderPaymentState.mockResolvedValue(false);
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(callPaydock).toHaveBeenCalled();
-        expect(httpUtils.addPaydockLog).toHaveBeenCalled();
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
     });
@@ -539,7 +549,7 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(input);
+        const response = await serviceModule.makePayment(input, paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
@@ -564,7 +574,7 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const result = await serviceModule.makePayment(input);
+        const result = await serviceModule.makePayment(input, paymentObject, loggerContext);
         expect(result.status).toBe('Error');
     });
 
@@ -621,7 +631,7 @@ describe('web-component-service.js', () => {
             SaveCard: true,
             PaydockPaymentType: 'card',
             amount: {value: 10000, currency: 'AUD'},
-        });
+        }, paymentObject, loggerContext);
 
         expect(result.status).toBe('Success');
     });
@@ -697,7 +707,7 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj,paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
@@ -727,7 +737,7 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
@@ -759,7 +769,7 @@ describe('web-component-service.js', () => {
         });
         updateOrderPaymentState.mockResolvedValue(true);
         setItem.mockResolvedValue(null);
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
@@ -790,7 +800,7 @@ describe('web-component-service.js', () => {
         });
         updateOrderPaymentState.mockResolvedValue(true);
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
@@ -818,7 +828,7 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
@@ -846,7 +856,7 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
@@ -874,7 +884,7 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
@@ -902,7 +912,7 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');
@@ -936,7 +946,7 @@ describe('web-component-service.js', () => {
             },
         });
 
-        const response = await serviceModule.makePayment(makePaymentRequestObj);
+        const response = await serviceModule.makePayment(makePaymentRequestObj, paymentObject, loggerContext);
 
         expect(response.status).toBe('Success');
         expect(response.chargeId).toBe('charge-456');

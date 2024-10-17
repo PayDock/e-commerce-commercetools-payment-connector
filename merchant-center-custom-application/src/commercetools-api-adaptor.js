@@ -14,6 +14,7 @@ class CommerceToolsAPIAdapter {
         this.arrayPaydockStatus = CHARGE_STATUSES;
 
     }
+
     async setAccessToken(accessToken, tokenExpirationInSeconds) {
         this.accessToken = accessToken;
         const tokenExpiration = new Date();
@@ -30,29 +31,38 @@ class CommerceToolsAPIAdapter {
     }
 
     async authenticate() {
+        const authUrl = `https://auth.${this.region}.commercetools.com/oauth/token`;
+
+        const authData = new URLSearchParams();
+        authData.append('grant_type', 'client_credentials');
+        authData.append('scope', [
+            `manage_orders:${this.projectKey}`,
+            `manage_payments:${this.projectKey}`,
+        ].join(' '));
+
+        const auth = btoa(`${this.clientId}:${this.clientSecret}`);
+
         try {
-            const response = await fetch(`/${this.env.projectKey}/api/oauth/token`, {
-                method: 'POST',
+            const response = await fetch(authUrl, {
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    authorization: `Basic ${auth}`,
+                    'content-type': 'application/x-www-form-urlencoded',
                 },
-                body: new URLSearchParams({
-                    grant_type: 'client_credentials',
-                    scope: `manage_orders:${this.env.projectKey} manage_payments:${this.env.projectKey}`
-                })
+                body: authData.toString(),
+                method: 'POST',
             });
 
             const authResult = await response.json();
-            await this.setAccessToken(authResult.access_token, authResult.expires_in);
+            this.setAccessToken(authResult.access_token, authResult.expires_in);
         } catch (error) {
-            throw new Error('Failed to authenticate');
+            throw error;
         }
     }
 
     async makeRequest(endpoint, method = 'GET', body = null) {
         try {
             const accessToken = await this.getAccessToken();
-            const apiUrl = `/${this.env.projectKey}/api${endpoint}`;
+            const apiUrl = `https://api.${this.region}.commercetools.com/${this.projectKey}${endpoint}`;
             const response = await fetch(apiUrl, {
                 body: body ? JSON.stringify(body) : null,
                 headers: {

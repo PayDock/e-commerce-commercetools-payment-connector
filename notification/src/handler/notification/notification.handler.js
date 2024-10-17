@@ -1,7 +1,8 @@
+import { v4 as uuidv4 } from 'uuid';
 import {serializeError} from 'serialize-error'
 import VError from 'verror'
 import config from '../../config/config.js'
-import {addPaydockLog, getLogActions} from '../../utils/logger.js'
+import logger  from '../../utils/logger.js'
 import ctp from '../../utils/ctp.js'
 import customObjectsUtils from '../../utils/custom-objects-utils.js'
 import {callPaydock} from './paydock-api-service.js';
@@ -15,7 +16,8 @@ async function processNotification(
     const ctpClient = await ctp.get(ctpConfig)
 
     let result = {}
-
+    let loggerContext = null;
+    const httpRequestId = uuidv4();
     if (!notification.reference) {
         result.status = 'Failure'
         result.message = 'Reference not found'
@@ -26,6 +28,7 @@ async function processNotification(
             result.status = 'Failure'
             result.message = 'Payment not found'
         } else if (event !== undefined) {
+            loggerContext = logger.createLogContext(paymentObject.id, httpRequestId);
             switch (event) {
                 case 'transaction_success':
                 case 'transaction_failure':
@@ -36,7 +39,7 @@ async function processNotification(
                 case 'fraud_check_transaction_in_review_approved':
                 case 'fraud_check_failed':
                 case 'fraud_check_transaction_in_review_declined':
-                    result = await processWebhook(event, paymentObject, notification, ctpClient)
+                    result = await processWebhook(event, paymentObject, notification, ctpClient, loggerContext)
                     break
                 case 'standalone_fraud_check_success':
                 case 'standalone_fraud_check_failed':
@@ -44,17 +47,17 @@ async function processNotification(
                 case 'standalone_fraud_check_in_review_declined':
                 case 'standalone_fraud_check_in_review_async_approved':
                 case 'standalone_fraud_check_in_review_async_declined':
-                    result = await processFraudNotification(event, paymentObject, notification, ctpClient)
+                    result = await processFraudNotification(event, paymentObject, notification, ctpClient, loggerContext)
                     break
                 case 'refund_success':
-                    result = await processRefundSuccessNotification(event, paymentObject, notification, ctpClient)
+                    result = await processRefundSuccessNotification(event, paymentObject, notification, ctpClient, loggerContext)
                     break
                 default:
                     result.status = 'Failure'
                     result.message = 'Notification Event not found'
             }
 
-            const logs = getLogActions();
+            const logs = loggerContext.getLogsAction();
 
             if (logs.length) {
                 paymentObject = await ctpClient.fetchById(ctpClient.builder.payments, paymentObject.id);
@@ -67,11 +70,10 @@ async function processNotification(
             }
         }
     }
-
     return result
 }
 
-async function processWebhook(event, payment, notification, ctpClient) {
+async function processWebhook(event, payment, notification, ctpClient, loggerContext) {
     const result = {}
     const order = await ctpClient.fetchOrderByNymber(ctpClient.builder.orders, payment.id)
     if (order) {
@@ -120,7 +122,7 @@ async function processWebhook(event, payment, notification, ctpClient) {
                 ctpClient.builder.payments,
                 currentPayment.id,
                 currentVersion,
-                updateActions.concat(getLogActions())
+                updateActions
             );
 
             await updateOrderStatus(ctpClient, currentPayment.id, paymentStatus, orderStatus);
@@ -130,7 +132,7 @@ async function processWebhook(event, payment, notification, ctpClient) {
             result.message = error
         }
 
-        addPaydockLog({
+        loggerContext.addPaydockLog({
             paydockChargeID: chargeId,
             operation,
             status: result.status,
@@ -141,7 +143,7 @@ async function processWebhook(event, payment, notification, ctpClient) {
 }
 
 
-async function processFraudNotification(event, payment, notification, ctpClient) {
+async function processFraudNotification(event, payment, notification, ctpClient, loggerContext) {
     let result = {}
     const currentPayment = payment
     const currentVersion = payment.version
@@ -173,20 +175,20 @@ async function processFraudNotification(event, payment, notification, ctpClient)
                 ctpClient.builder.payments,
                 currentPayment.id,
                 currentVersion,
-                updateActions.concat(getLogActions())
+                updateActions
             )
         } catch (error) {
             result.status = 'Failure'
             result.message = error
         }
     } else {
-        result = await processFraudNotificationComplete(event, payment, notification, ctpClient);
+        result = await processFraudNotificationComplete(event, payment, notification, ctpClient, loggerContext);
     }
     return result
 }
 
 
-async function processFraudNotificationComplete(event, payment, notification, ctpClient) {
+async function processFraudNotificationComplete(event, payment, notification, ctpClient, loggerContext) {
     const result = {}
     const fraudChargeId = notification._id ?? null;
     const cacheName = `paydock_fraud_${notification.reference}`
@@ -204,7 +206,7 @@ async function processFraudNotificationComplete(event, payment, notification, ct
         result.status = 'UnfulfilledCondition'
         result.message = `Can't charge.${errorMessageToString(response)}`
 
-        addPaydockLog({
+        loggerContext.addPaydockLog({
             paydockChargeID: updatedChargeId,
             operation: 'Charge',
             status: result.status,
@@ -221,7 +223,7 @@ async function processFraudNotificationComplete(event, payment, notification, ct
             result.status = 'UnfulfilledCondition'
             result.message = `Can't fraud attach.${errorMessageToString(attachResponse)}`
 
-            addPaydockLog({
+            loggerContext.addPaydockLog({
                 paydockChargeID: updatedChargeId,
                 operation: 'Fraud Attach',
                 status: result.status,
@@ -230,15 +232,15 @@ async function processFraudNotificationComplete(event, payment, notification, ct
             return result
         }
     }
-    const returnHandleFraudNotification = await handleFraudNotification(response, updatedChargeId, ctpClient, payment)
-    return returnHandleFraudNotification;
+    const returnNot = await handleFraudNotification(response, updatedChargeId, ctpClient, payment, loggerContext)
+    return returnNot;
 }
 
 function extractChargeIdFromNotification(response) {
     return response?.resource?.data?._id || response?.resource?.data?.id || 0;
 }
 
-async function handleFraudNotification(response, updatedChargeId, ctpClient, payment) {
+async function handleFraudNotification(response, updatedChargeId, ctpClient, payment, loggerContext) {
 
     let updateActions = [];
     const result = {}
@@ -278,7 +280,7 @@ async function handleFraudNotification(response, updatedChargeId, ctpClient, pay
 
         result.status = 'Success'
 
-        addPaydockLog({
+        loggerContext.addPaydockLog({
             paydockChargeID: updatedChargeId,
             operation,
             status: result.status,
@@ -409,7 +411,7 @@ async function createCharge(data, params = {}, returnObject = false) {
     }
 }
 
-async function processRefundSuccessNotification(event, payment, notification, ctpClient) {
+async function processRefundSuccessNotification(event, payment, notification, ctpClient, loggerContext) {
 
     if (!notification.transaction || notification.from_webhook) {
         return {status: 'Failure'};
@@ -479,7 +481,7 @@ async function processRefundSuccessNotification(event, payment, notification, ct
                 ctpClient.builder.payments,
                 currentPayment.id,
                 currentVersion,
-                updateActions.concat(getLogActions())
+                updateActions
             )
 
             await updateOrderStatus(ctpClient, currentPayment.id, 'Paid', 'Complete');
@@ -492,7 +494,7 @@ async function processRefundSuccessNotification(event, payment, notification, ct
         }
     }
 
-    addPaydockLog({
+    loggerContext.addPaydockLog({
         paydockChargeID: chargeId,
         operation: paydockStatus,
         status: result.status,

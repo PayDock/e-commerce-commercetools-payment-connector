@@ -3,10 +3,9 @@ import {
 } from './payment-utils.js'
 import c from '../config/constants.js'
 import {updatePaydockStatus} from "../service/web-component-service.js";
-import httpUtils from "../utils.js";
 import config from "../config/config.js";
 
-async function execute(paymentObject) {
+async function execute(paymentObject, loggerContext) {
     const paymentExtensionRequest = JSON.parse(
         paymentObject.custom.fields.PaymentExtensionRequest
     )
@@ -32,8 +31,16 @@ async function execute(paymentObject) {
             status: false,
             message: error
         }));
+        loggerContext.addPaydockLog({
+            paydockChargeID: chargeId,
+            operation: newStatus,
+            status: newStatus,
+            message: error
+        })
+
         return {
             actions,
+            loggerContext
         }
     }
     let message = `Change status from '${oldStatus}' to '${newStatus}'`;
@@ -58,7 +65,7 @@ async function execute(paymentObject) {
         message = `Refunded ${requestBodyJson.refundAmount}`
     }
 
-    httpUtils.addPaydockLog({
+    loggerContext.addPaydockLog({
         paydockChargeID: chargeId,
         operation: newStatus,
         status: responseStatus,
@@ -70,6 +77,7 @@ async function execute(paymentObject) {
     }
     return {
         actions,
+        loggerContext
     }
 }
 

@@ -64,6 +64,28 @@
                 "name": "String"
             },
             "inputHint": "SingleLine"
+        },
+        {
+            "name": "paymentId",
+            "label": {
+                "en": "Payment Id"
+            },
+            "required": false,
+            "type": {
+                "name": "String"
+            },
+            "inputHint": "SingleLine"
+        },
+        {
+            "name": "httpRequestId",
+            "label": {
+                "en": "Http Request Id"
+            },
+            "required": false,
+            "type": {
+                "name": "String"
+            },
+            "inputHint": "SingleLine"
         }
     ]
 }

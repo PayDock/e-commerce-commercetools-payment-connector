@@ -9,7 +9,7 @@ import {updateOrderPaymentState} from './ct-api-service.js';
 
 const logger = httpUtils.getLogger();
 
-async function makePayment(makePaymentRequestObj, paymentObject) {
+async function makePayment(makePaymentRequestObj, paymentObject, loggerContext) {
     const orderId = makePaymentRequestObj.orderId;
     const paymentSource = makePaymentRequestObj.PaydockTransactionId;
     const paymentType = makePaymentRequestObj.PaydockPaymentType;
@@ -62,12 +62,13 @@ async function makePayment(makePaymentRequestObj, paymentObject) {
     }
 
     await updateOrderPaymentState(orderId, paydockStatus);
-    httpUtils.addPaydockLog({
+    loggerContext.addPaydockLog({
         paydockChargeID: chargeId,
         operation: paydockStatus,
         status,
         message
-    })
+    });
+
 
     return response;
 }
@@ -1020,14 +1021,6 @@ async function createCustomerAndSaveVaultToken({configurations, input, vaultToke
     const customerResponse = await createCustomer(customerRequest);
     if (customerResponse.status === 'Success' && customerResponse.customerId) {
         customerId = customerResponse.customerId;
-
-        httpUtils.addPaydockLog({
-            paydockChargeID: input.PaydockTransactionId,
-            operation: 'Create Customer',
-            status: customerResponse.status,
-            message: `Create Customer ${customerId}`
-        })
-
         if (
             shouldSaveVaultToken({type, saveCard: input.SaveCard, userId: input.CommerceToolsUserId, configurations}) &&
             (
@@ -1037,29 +1030,13 @@ async function createCustomerAndSaveVaultToken({configurations, input, vaultToke
             )
         ) {
             const tokenData = await getVaultTokenData(vaultToken);
-            const result = await saveUserToken({
+            await saveUserToken({
                 token: tokenData,
                 user_id: input.CommerceToolsUserId,
                 customer_id: customerId,
             });
-            const messageLog = result.success ? 'Customer Vault Token saved successfully' : result.error
-            const statusLog = result.success ? 'Success' : 'Failure'
-            httpUtils.addPaydockLog({
-                paydockChargeID: input.PaydockTransactionId,
-                operation: 'Save Customer Vault Token',
-                status: statusLog,
-                message: messageLog
-            })
         }
-    } else {
-        httpUtils.addPaydockLog({
-            paydockChargeID: input.PaydockTransactionId,
-            operation: 'Create Customer',
-            status: customerResponse.status,
-            message: customerResponse.message
-        })
     }
-
     return customerId;
 }
 

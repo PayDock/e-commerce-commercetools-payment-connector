@@ -67,6 +67,7 @@
     "supertest": "^7.0.0"
   },
   "dependencies": {
+    "uuid": "^10.0.0",
     "@commercetools-backend/loggers": "^22.31.0",
     "@commercetools/api-request-builder": "6.0.0",
     "@commercetools/sdk-client": "3.0.0",

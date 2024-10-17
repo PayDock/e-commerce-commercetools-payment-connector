@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import {withPayment} from '../validator/validator-builder.js'
 import makePaymentHandler from './make-payment.handler.js'
 import getVaultTokenHandler from './get-vault-token.handler.js'
@@ -5,7 +6,8 @@ import getPaymentMethodsHandler from './get-payment-methods.handler.js'
 import updatePaymentStatusHandler from './update-payment-status.handler.js'
 import makePreChargeHandler from './make-pre-chrage.handler.js'
 import getStandaloneTokenHandler from './get-standalone-3ds-token.handler.js'
-import utils from "../utils.js";
+import httpUtils from "../utils.js";
+
 
 import c from "../config/constants.js";
 import {
@@ -35,6 +37,8 @@ async function handlePaymentByExtRequest(paymentObject, authToken) {
     const objPaymentExtensionRequest = JSON.parse(paymentExtensionRequest);
     const actionExtension = objPaymentExtensionRequest.action ?? null;
     const handlers = [];
+    let loggerContext = null;
+    const httpRequestId = uuidv4();
     if (!actionExtension || (actionExtension === 'FromNotification' && additionalInformation)) return null
     switch (actionExtension) {
         case  c.CTP_CUSTOM_FIELD_GET_PAYMENT_METHODS_REQUEST:
@@ -44,12 +48,14 @@ async function handlePaymentByExtRequest(paymentObject, authToken) {
             handlers.push(getVaultTokenHandler)
             break;
         case c.CTP_INTERACTION_TYPE_MAKE_PAYMENT_REQUEST:
+            loggerContext = httpUtils.createLogContext(paymentObject.id, httpRequestId);
             handlers.push(makePaymentHandler)
             break;
         case c.CTP_CUSTOM_FIELD_GET_STANDALONE_3DS_TOKEN_REQUEST:
             handlers.push(getStandaloneTokenHandler)
             break;
         case c.CTP_CUSTOM_GET_UPDATE_STATUS:
+            loggerContext = httpUtils.createLogContext(paymentObject.id, httpRequestId);
             handlers.push(updatePaymentStatusHandler)
             break;
         case c.CTP_CUSTOM_FIELD_MAKE_PRE_CHARGE_RESPONSE:
@@ -60,12 +66,18 @@ async function handlePaymentByExtRequest(paymentObject, authToken) {
     }
     if (!handlers) return null
 
-    const handlerResponses = await Promise.all(
+    const handlerResponses = loggerContext ? await Promise.all(
+        handlers.map((handler) => handler.execute(paymentObject, loggerContext)),
+    ) : await Promise.all(
         handlers.map((handler) => handler.execute(paymentObject)),
     )
 
     const version = handlerResponses.find((result) => result.version !== null)
-    const actions = handlerResponses.flatMap((result) => result.actions)
+    let actions = handlerResponses.flatMap((result) => result.actions)
+    if (loggerContext) {
+        actions = actions.concat(loggerContext.getLogsAction())
+        loggerContext.clearLog()
+    }
     actions.push(deleteCustomFieldAction(c.CTP_INTERACTION_PAYMENT_EXTENSION_REQUEST))
     if (version) {
         return {

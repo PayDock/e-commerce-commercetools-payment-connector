@@ -122,5 +122,11 @@
   "devDependencies": {
     "node-sass": "^9.0.0",
     "sass-loader": "^16.0.1"
+  },
+  "mcProxy": {
+    "proxy": {
+      "forwardingUrl": "https://api.europe-west1.gcp.commercetools.com",
+      "replaceUrlProtocol": true
+    }
   }
 }

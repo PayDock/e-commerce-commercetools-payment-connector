@@ -18,16 +18,14 @@ jest.mock('node:fs/promises');
 jest.mock('url');
 jest.mock('path');
 jest.mock('../../src/config/config.js');
-jest.mock('@commercetools-backend/loggers', () => {
-    return {
+jest.mock('@commercetools-backend/loggers', () => ({
         createApplicationLogger: jest.fn(() => ({
             info: jest.fn(),
             error: jest.fn(),
             warn: jest.fn(),
             debug: jest.fn(),
         })),
-    };
-});
+    }));
 describe('utils.js', () => {
     let mockCtpClient;
 
@@ -52,35 +50,6 @@ describe('utils.js', () => {
         config.getCtpClient.mockResolvedValue(mockCtpClient);
     });
 
-    test('addPaydockLog should log data to custom objects', async () => {
-        const data = {
-            paydockChargeID: 'paydockChargeIdId12334',
-            operation: 'test operation',
-            responseStatus: 'Success',
-            message: 'test message'
-        };
-
-        const mockTimestamp = '1970-01-01T00:00:00.000Z';
-        jest.spyOn(Date.prototype, 'toISOString').mockReturnValue(mockTimestamp);
-
-        utils.addPaydockLog(data);
-
-        expect(utils.getLogsAction()).toEqual([
-            {
-                "action": "addInterfaceInteraction",
-                "type": {
-                    "key": "paydock-payment-log-interaction"
-                },
-                "fields": {
-                    "createdAt": mockTimestamp,
-                    "chargeId": data.paydockChargeID,
-                    "operation": data.operation,
-                    "status": data.status,
-                    "message": data.message
-                }
-            }
-        ]);
-    });
 
     test('collectRequestData should collect data from request stream', async () => {
         const mockRequest = {

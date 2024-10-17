@@ -3,50 +3,51 @@ import config from '../config/config.js';
 
 const {createApplicationLogger} = loggers;
 
-let loggerInstance;
-let logActions = [];
 
 function getLogger() {
-    if (!loggerInstance) {
-        loggerInstance = createApplicationLogger({
-            name: 'ctp-paydock-integration-notifications',
-            level: config.getModuleConfig()?.logLevel || 'info',
+    return createApplicationLogger({
+        name: 'ctp-paydock-integration-extension',
+        level: config.getModuleConfig()?.logLevel || 'info',
+    });
+}
+
+function createLogContext(paymentId, httpRequestId) {
+    let logActions = [];
+
+    function addPaydockLog(data) {
+        const date = new Date();
+        logActions.push({
+            "action": "addInterfaceInteraction",
+            "type": {
+                "key": "paydock-payment-log-interaction"
+            },
+            "fields": {
+                "createdAt": date.toISOString(),
+                "chargeId": data.paydockChargeID,
+                "operation": data.operation,
+                "status": data.status,
+                "message": data.message,
+                "paymentId": paymentId,  // Ідентифікатор платежу
+                "httpRequestId": httpRequestId  // Ідентифікатор HTTP-запиту
+            }
         });
     }
-    return loggerInstance;
-}
 
-function addPaydockLog(data) {
-    const date = new Date();
-    let message = '';
-    if (typeof data.message === 'string'){
-        message = data.message
-    }else{
-        message = data?.message?.message ?? ''
+    function clearLog() {
+        logActions = [];
     }
-    logActions.push({
-        "action": "addInterfaceInteraction",
-        "type": {
-            "key": "paydock-payment-log-interaction"
-        },
-        "fields": {
-            "createdAt": date.toISOString(),
-            "chargeId": data.paydockChargeID,
-            "operation": data.operation,
-            "status": data.status,
-            "message": message
-        }
-    })
+
+    function getLogsAction() {
+        const result = logActions;
+        clearLog();  // Очищуємо після отримання логів
+        return result;
+    }
+
+    return {
+        addPaydockLog,
+        getLogsAction,
+        clearLog
+    };
 }
 
-function clearLog(){
-    logActions = [];
-}
-function getLogActions(){
-    const result = logActions
-    logActions = [];
-
-    return result;
-}
-
-export {getLogger, addPaydockLog,  clearLog, getLogActions};
+export default {getLogger, createLogContext};

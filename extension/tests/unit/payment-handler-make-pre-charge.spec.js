@@ -28,16 +28,14 @@ jest.mock('../../src/config/config-loader.js', () => {
     };
 });
 
-jest.mock('@commercetools-backend/loggers', () => {
-    return {
+jest.mock('@commercetools-backend/loggers', () => ({
         createApplicationLogger: jest.fn(() => ({
             info: jest.fn(),
             error: jest.fn(),
             warn: jest.fn(),
             debug: jest.fn(),
         })),
-    };
-});
+    }));
 configData.sandbox_mode = "Yes";
 
 config.getModuleConfig.mockResolvedValue(moduleConfigData);
@@ -63,7 +61,6 @@ fetch.mockReturnValue(
 
 describe('Integration::PaymentHandler::makePreCharge::', () => {
     const server = setupServer();
-
     beforeEach(async () => {
         server.listen(3001, 'localhost')
     })
@@ -97,7 +94,6 @@ describe('Integration::PaymentHandler::makePreCharge::', () => {
                 }
             }
         );
-
         return request(server)
             .post('/extension')
             .send(preChargeRequest)

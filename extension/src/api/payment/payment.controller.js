@@ -22,7 +22,6 @@ async function processRequest(request, response) {
     }
     let paymentObject = {}
     try {
-        httpUtils.clearLog();
         const authToken = getAuthorizationRequestHeader(request)
         paymentObject = await _getPaymentObject(request)
         const paymentResult = await paymentHandler.handlePaymentByExtRequest(
@@ -32,10 +31,6 @@ async function processRequest(request, response) {
         if (paymentResult === null) {
             return httpUtils.sendResponse({response, statusCode: 200, data: {actions: []}})
         }
-        if (paymentResult.actions) {
-            paymentResult.actions = paymentResult.actions.concat(httpUtils.getLogsAction())
-        }
-
         const result = {
             response,
             statusCode: paymentResult.actions ? 200 : 400,
