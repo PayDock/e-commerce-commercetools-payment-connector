@@ -67,7 +67,6 @@
     "supertest": "^7.0.0"
   },
   "dependencies": {
-    "uuid": "^10.0.0",
     "@commercetools-backend/loggers": "^22.31.0",
     "@commercetools/api-request-builder": "6.0.0",
     "@commercetools/sdk-client": "3.0.0",
@@ -82,7 +81,9 @@
     "node-fetch": "3.3.2",
     "rc": "1.2.8",
     "run-func": "3.0.0",
-    "serialize-error": "11.0.3"
+    "serialize-error": "11.0.3",
+    "uuid": "^10.0.0",
+    "crypto-js": "^4.2.0"
   },
   "mocha": {
     "timeout": 300000,

@@ -22,6 +22,7 @@ function loadFromPaydockIntegrationEnvVar() {
     const envConfig = {
         clientId: process.env.COMMERCETOOLS_CLIENT_ID,
         clientSecret: process.env.COMMERCETOOLS_CLIENT_SECRET,
+        secretKeyForEncryption: process.env.SECRET_KEY_FOR_ENCRYPTION,
         projectKey: process.env.COMMERCETOOLS_PROJECT_KEY,
         apiUrl: process.env.COMMERCETOOLS_API_URL,
         authUrl: process.env.COMMERCETOOLS_AUTH_URL,

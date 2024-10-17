@@ -50,6 +50,7 @@ This connector consists of three main components, each with its own set of envir
 |-----------------------|------------------------------------|----------|--------------------------------|
 | `APP_CLIENT_ID`        | The commercetools client ID        | Yes      | `APP_CLIENT_ID=my-client-id`   |
 | `APP_CLIENT_SECRET`    | The commercetools client secret    | Yes      | `APP_CLIENT_SECRET=my-secret`  |
+| `SECRET_KEY_FOR_ENCRYPTION`| Secret key for encryption      | Yes      | `SECRET_KEY_FOR_ENCRYPTION=my-secret`|
 
 ---
 
@@ -67,10 +68,11 @@ This connector consists of three main components, each with its own set of envir
 
 #### Secured Configuration Variables
 
-| Variable                   | Description                        | Required | Example                               |
-|----------------------------|------------------------------------|----------|---------------------------------------|
-| `COMMERCETOOLS_CLIENT_ID`   | The commercetools client Id        | Yes      | `COMMERCETOOLS_CLIENT_ID=my-client-id`|
-| `COMMERCETOOLS_CLIENT_SECRET`| The commercetools client secret    | Yes      | `COMMERCETOOLS_CLIENT_SECRET=my-secret`|
+| Variable                      | Description                     | Required | Example                               |
+|-------------------------------|---------------------------------|----------|---------------------------------------|
+| `COMMERCETOOLS_CLIENT_ID`     | The commercetools client Id     | Yes      | `COMMERCETOOLS_CLIENT_ID=my-client-id`|
+| `COMMERCETOOLS_CLIENT_SECRET` | The commercetools client secret | Yes      | `COMMERCETOOLS_CLIENT_SECRET=my-secret`|
+| `SECRET_KEY_FOR_ENCRYPTION`   | Secret key for encryption       | Yes      | `SECRET_KEY_FOR_ENCRYPTION=my-secret`|
 
 ---
 
@@ -88,10 +90,11 @@ This connector consists of three main components, each with its own set of envir
 
 #### Secured Configuration Variables
 
-| Variable                   | Description                        | Required | Example                               |
-|----------------------------|------------------------------------|----------|---------------------------------------|
-| `COMMERCETOOLS_CLIENT_ID`   | The commercetools client ID        | Yes      | `COMMERCETOOLS_CLIENT_ID=my-client-id`|
-| `COMMERCETOOLS_CLIENT_SECRET`| The commercetools client secret    | Yes      | `COMMERCETOOLS_CLIENT_SECRET=my-secret`|
+| Variable                      | Description                     | Required | Example                               |
+|-------------------------------|---------------------------------|----------|---------------------------------------|
+| `COMMERCETOOLS_CLIENT_ID`     | The commercetools client ID     | Yes      | `COMMERCETOOLS_CLIENT_ID=my-client-id`|
+| `COMMERCETOOLS_CLIENT_SECRET` | The commercetools client secret | Yes      | `COMMERCETOOLS_CLIENT_SECRET=my-secret`|
+| `SECRET_KEY_FOR_ENCRYPTION`   | Secret key for encryption       | Yes      | `SECRET_KEY_FOR_ENCRYPTION=my-secret`|
 
 
 

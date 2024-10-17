@@ -1,3 +1,4 @@
+import CryptoJS from 'crypto-js';
 import { loadConfig } from './config-loader.js'
 import ctpClientBuilder from '../utils/ctp.js'
 
@@ -47,14 +48,10 @@ function getNotificationConfig() {
   }
 }
 
-function decrypt(data, clientSecret) {
-  const keyArrayLen = clientSecret.length;
-
-  return data.split("").map((dataElement, index) => {
-    const remainder = index % keyArrayLen;
-
-    return String.fromCharCode(dataElement.charCodeAt(0) / clientSecret.charCodeAt(remainder))
-  }).join("");
+function decrypt(encryptedData, secretKeyForEncryption) {
+  const bytes = CryptoJS.AES.decrypt(encryptedData, secretKeyForEncryption);
+  const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+  return decrypted;
 }
 async function getPaydockConfig(type = 'all') {
   if (!paydockConfig) {

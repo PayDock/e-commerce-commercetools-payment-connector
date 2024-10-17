@@ -81,7 +81,10 @@
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
     "@types/testing-library__jest-dom": "^5.14.9",
+    "assert": "^2.1.0",
     "axios": "^1.6.7",
+    "buffer": "^6.0.3",
+    "crypto-js": "^4.2.0",
     "eslint": "8.57.0",
     "eslint-formatter-pretty": "6.0.1",
     "eslint-plugin-graphql": "^4.0.0",
@@ -95,8 +98,10 @@
     "msw": "2.4.5",
     "omit-empty-es": "1.2.0",
     "prettier": "3.3.3",
+    "process": "^0.11.10",
     "prop-types": "15.8.1",
     "react": "17.0.2",
+    "react-app-rewired": "^2.2.1",
     "react-color": "^2.19.3",
     "react-dom": "17.0.2",
     "react-intl": "^6.4.5",
@@ -104,7 +109,8 @@
     "react-router-dom": "5.3.4",
     "react-spinners": "^0.14.1",
     "redux": "4.2.1",
-    "sass": "^1.70.0"
+    "sass": "^1.70.0",
+    "stream-browserify": "^3.0.0"
   },
   "resolutions": {
     "@emotion/react": "^11.11.1",
@@ -122,6 +128,11 @@
   "devDependencies": {
     "node-sass": "^9.0.0",
     "sass-loader": "^16.0.1"
+  },
+  "browser": {
+    "crypto": "crypto-browserify",
+    "stream": "stream-browserify",
+    "assert": "assert"
   },
   "mcProxy": {
     "proxy": {

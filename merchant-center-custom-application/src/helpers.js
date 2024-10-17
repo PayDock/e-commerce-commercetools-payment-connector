@@ -1,4 +1,6 @@
 import { isApolloError } from '@apollo/client';
+import CryptoJS from 'crypto-js';
+
 import {
   transformLocalizedStringToLocalizedField,
   transformLocalizedFieldToLocalizedString,
@@ -48,22 +50,13 @@ export const convertToActionData = (draft) => ({
 });
 
 
-export const encrypt = async (data, clientSecret) =>  {
-  const keyArrayLen = clientSecret.length;
-
-  return data.split("").map((dataElement, index) => {
-    let remainder = index % keyArrayLen;
-
-    return String.fromCharCode(dataElement.charCodeAt(0) * clientSecret.charCodeAt(remainder))
-  }).join("");
+export const encrypt =  (data, secretKeyForEncryption) =>  {
+  const encrypted = CryptoJS.AES.encrypt(data, secretKeyForEncryption).toString();
+  return encrypted;
 }
 
-export const decrypt = (data, clientSecret) => {
-  const keyArrayLen = clientSecret.length;
-
-  return data.split("").map((dataElement, index) => {
-    let remainder = index % keyArrayLen;
-
-    return String.fromCharCode(dataElement.charCodeAt(0) / clientSecret.charCodeAt(remainder))
-  }).join("");
+export const decrypt = (encryptedData, secretKeyForEncryption) => {
+  const bytes = CryptoJS.AES.decrypt(encryptedData, secretKeyForEncryption);
+  const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+  return decrypted;
 }

@@ -1,3 +1,4 @@
+import CryptoJS from 'crypto-js';
 import {loadConfig} from './config-loader.js'
 import ctpClientBuilder from "../ctp.js";
 
@@ -9,14 +10,10 @@ function getExtensionUrl() {
     return process.env.CONNECT_SERVICE_URL;
 }
 
-function decrypt(data, clientSecret) {
-    const keyArrayLen = clientSecret.length;
-
-    return data.split("").map((dataElement, index) => {
-        const remainder = index % keyArrayLen;
-
-        return String.fromCharCode(dataElement.charCodeAt(0) / clientSecret.charCodeAt(remainder))
-    }).join("");
+function decrypt(encryptedData, secretKeyForEncryption) {
+    const bytes = CryptoJS.AES.decrypt(encryptedData, secretKeyForEncryption);
+    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    return decrypted;
 }
 
 function getModuleConfig() {
@@ -81,7 +78,7 @@ async function getPaydockConfig(type = 'all', disableCache = false) {
             "credentials_secret_key"
         ].forEach((field) => {
             if (paydockConfig[group]?.[field]) {
-                paydockConfig[group][field] = decrypt(paydockConfig[group][field], config.clientSecret)
+                paydockConfig[group][field] = decrypt(paydockConfig[group][field], config.secretKeyForEncryption)
             }
         }))
     }

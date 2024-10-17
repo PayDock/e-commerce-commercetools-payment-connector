@@ -8,11 +8,11 @@ class CommerceToolsAPIAdapter {
         this.clientId = env.clientId;
         this.clientSecret = env.clientSecret;
         this.projectKey = env.projectKey;
+        this.secretKeyForEncryption = env.secretKeyForEncryption;
         this.region = env.region;
         this.accessToken = null;
         this.tokenExpirationTime = null;
         this.arrayPaydockStatus = CHARGE_STATUSES;
-
     }
 
     async setAccessToken(accessToken, tokenExpirationInSeconds) {
@@ -98,13 +98,13 @@ class CommerceToolsAPIAdapter {
         this.updateAPINotification(group, data.value, notificationUrl);
 
         if (requestData.value.credentials_access_key) {
-            requestData.value.credentials_access_key = await encrypt(requestData.value.credentials_access_key, this.clientSecret);
+            requestData.value.credentials_access_key = encrypt(requestData.value.credentials_access_key, this.secretKeyForEncryption);
         }
         if (requestData.value.credentials_public_key) {
-            requestData.value.credentials_public_key = await encrypt(requestData.value.credentials_public_key, this.clientSecret);
+            requestData.value.credentials_public_key = encrypt(requestData.value.credentials_public_key, this.secretKeyForEncryption);
         }
         if (requestData.value.credentials_secret_key) {
-            requestData.value.credentials_secret_key = await encrypt(requestData.value.credentials_secret_key, this.clientSecret);
+            requestData.value.credentials_secret_key = encrypt(requestData.value.credentials_secret_key, this.secretKeyForEncryption);
         }
         await this.makeRequest('/custom-objects', 'POST', requestData)
 
@@ -137,13 +137,13 @@ class CommerceToolsAPIAdapter {
         let data = await this.makeRequest('/custom-objects/paydockConfigContainer/' + group);
 
         if (data.value.credentials_access_key) {
-            data.value.credentials_access_key = await decrypt(data.value.credentials_access_key, this.clientSecret);
+            data.value.credentials_access_key = decrypt(data.value.credentials_access_key, this.secretKeyForEncryption);
         }
         if (data.value.credentials_public_key) {
-            data.value.credentials_public_key = await decrypt(data.value.credentials_public_key, this.clientSecret);
+            data.value.credentials_public_key = decrypt(data.value.credentials_public_key, this.secretKeyForEncryption);
         }
         if (data.value.credentials_secret_key) {
-            data.value.credentials_secret_key = await decrypt(data.value.credentials_secret_key, this.clientSecret);
+            data.value.credentials_secret_key = decrypt(data.value.credentials_secret_key, this.secretKeyForEncryption);
         }
 
         return data

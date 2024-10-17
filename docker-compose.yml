@@ -12,6 +12,7 @@ services:
     environment:
       - "COMMERCETOOLS_CLIENT_ID=xxxxxx"
       - "COMMERCETOOLS_CLIENT_SECRET=xxxxxx"
+      - "SECRET_KEY_FOR_ENCRYPTION=xxxxxx"
       - "COMMERCETOOLS_PROJECT_KEY=xxxxxx"
       - "COMMERCETOOLS_API_URL=xxxxxx"
       - "COMMERCETOOLS_AUTH_URL=xxxxxx"
@@ -28,6 +29,7 @@ services:
     environment:
       - "COMMERCETOOLS_CLIENT_ID=xxxxxx"
       - "COMMERCETOOLS_CLIENT_SECRET=xxxxxx"
+      - "SECRET_KEY_FOR_ENCRYPTION=xxxxxx"
       - "COMMERCETOOLS_PROJECT_KEY=xxxxxx"
       - "COMMERCETOOLS_API_URL=xxxxxx"
       - "COMMERCETOOLS_AUTH_URL=xxxxxx"
