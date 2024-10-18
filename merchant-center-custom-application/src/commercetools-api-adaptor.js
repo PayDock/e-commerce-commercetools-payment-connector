@@ -1,87 +1,63 @@
 import {CHARGE_STATUSES} from './constants';
 import PaydockApiAdaptor from './paydock-api-adaptor';
 import {decrypt, encrypt} from "./helpers";
+import createHttpUserAgent from '@commercetools/http-user-agent';
+import {
+    buildApiUrl,
+    executeHttpClientRequest
+} from '@commercetools-frontend/application-shell';
 
 class CommerceToolsAPIAdapter {
     constructor(env) {
         this.env = env;
-        this.clientId = env.clientId;
-        this.clientSecret = env.clientSecret;
         this.projectKey = env.projectKey;
         this.secretKeyForEncryption = env.secretKeyForEncryption;
         this.region = env.region;
-        this.accessToken = null;
-        this.tokenExpirationTime = null;
+        this.userAgent = createHttpUserAgent({
+            name: 'fetch-data',
+            version: '1.0.0',
+            libraryName: window.app.applicationName,
+            contactEmail: 'support@paydock.com',
+        });
         this.arrayPaydockStatus = CHARGE_STATUSES;
     }
 
-    async setAccessToken(accessToken, tokenExpirationInSeconds) {
-        this.accessToken = accessToken;
-        const tokenExpiration = new Date();
-        tokenExpiration.setSeconds(tokenExpiration.getSeconds() + tokenExpirationInSeconds);
-        this.tokenExpirationTime = tokenExpiration.getTime();
-    }
+    async fetcher(url, config = {}, method) {
+        const data = await executeHttpClientRequest(
+            async (options) => {
+                const fullUrl = buildApiUrl(url);
+                if (method === 'POST') {
+                    options.headers['Content-Type'] = 'application/json';
+                }
+                const res = await fetch(fullUrl, {...options, ...config,
+                    method
+                });
+                if (!res.ok) {
+                    throw new Error(`Error fetching data from ${url}. Status: ${res.status}`);
+                }
 
-    async getAccessToken() {
-        const currentTimestamp = new Date().getTime();
-        if (!this.accessToken || currentTimestamp > this.tokenExpirationTime) {
-            await this.authenticate();
-        }
-        return this.accessToken;
-    }
-
-    async authenticate() {
-        const authUrl = `https://auth.${this.region}.commercetools.com/oauth/token`;
-
-        const authData = new URLSearchParams();
-        authData.append('grant_type', 'client_credentials');
-        authData.append('scope', [
-            `manage_orders:${this.projectKey}`,
-            `manage_payments:${this.projectKey}`,
-        ].join(' '));
-
-        const auth = btoa(`${this.clientId}:${this.clientSecret}`);
-
-        try {
-            const response = await fetch(authUrl, {
-                headers: {
-                    authorization: `Basic ${auth}`,
-                    'content-type': 'application/x-www-form-urlencoded',
-                },
-                body: authData.toString(),
-                method: 'POST',
-            });
-
-            const authResult = await response.json();
-            this.setAccessToken(authResult.access_token, authResult.expires_in);
-        } catch (error) {
-            throw error;
-        }
+                const data = await res.json();
+                return {
+                    data,
+                    statusCode: res.status,
+                    getHeader: (key) => res.headers.get(key),
+                };
+            },
+            {userAgent: this.userAgent}
+        );
+        return data;
     }
 
     async makeRequest(endpoint, method = 'GET', body = null) {
-        try {
-            const accessToken = await this.getAccessToken();
-            const apiUrl = `https://api.${this.region}.commercetools.com/${this.projectKey}${endpoint}`;
-            const response = await fetch(apiUrl, {
-                body: body ? JSON.stringify(body) : null,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`,
-                },
+        const url = `/${this.projectKey}/proxy/ctp${endpoint}`;
+        let config = {}
+        if(method == 'POST'){
+            config = {
                 method: method,
-            });
-
-            if (!response.ok) {
-                const error = new Error(`HTTP error! Status: ${response.status}`);
-                error.status = response.status;
-                throw error;
-            }
-
-            return await response.json();
-        } catch (error) {
-            throw error;
+                ...(body && { body: JSON.stringify(body) }),
+            };
         }
+        return await this.fetcher(url, config, method);
     }
 
     async setConfigs(group, data) {

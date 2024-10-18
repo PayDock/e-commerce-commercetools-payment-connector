@@ -19,9 +19,10 @@ const config = {
         region: '${env:APP_REGION}'
     },
     oAuthScopes: {
-        view: [],
+        view: ['view_orders', 'view_payments'],
         manage: ['manage_orders','manage_payments', 'manage_project', 'manage_order_edits'],
     },
+    mcProxyUrl: `https://mc-api.${process.env.APP_REGION}.commercetools.com`,
     icon: '${path:@commercetools-frontend/assets/application-icons/rocket.svg}',
     mainMenuLink: {
         defaultLabel: 'Paydock Settings',
