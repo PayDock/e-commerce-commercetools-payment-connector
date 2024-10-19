@@ -32,10 +32,6 @@ class CommerceToolsAPIAdapter {
                 const res = await fetch(fullUrl, {...options, ...config,
                     method
                 });
-                if (!res.ok) {
-                    throw new Error(`Error fetching data from ${url}. Status: ${res.status}`);
-                }
-
                 const data = await res.json();
                 return {
                     data,
@@ -127,7 +123,7 @@ class CommerceToolsAPIAdapter {
 
     async getLogs() {
         let logs = [];
-        let paydockLogs = await this.makeRequest('/payments/?&sort=createdAt+desc&limit=500');
+        const paydockLogs = await this.makeRequest('/payments?where=' + encodeURIComponent('paymentMethodInfo(method="paydock-pay") and custom(fields(AdditionalInformation is not empty))') + '&sort=createdAt+desc&limit=500');
         if (paydockLogs.results) {
             paydockLogs.results.forEach((paydockLog) => {
                 paydockLog.interfaceInteractions.forEach((interactionLog) => {
@@ -222,6 +218,9 @@ class CommerceToolsAPIAdapter {
             const paydockOrders = [];
             const paymentsArray = [];
             const payments = await this.makeRequest('/payments?where=' + encodeURIComponent('paymentMethodInfo(method="paydock-pay") and custom(fields(AdditionalInformation is not empty))') + '&sort=createdAt+desc&limit=500');
+            if(!payments.results.length){
+                return paydockOrders
+            }
             this.collectArrayPayments(payments, paymentsArray);
             if (paymentsArray) {
                 let orderQuery = '"' + Object.keys(paymentsArray).join('","') + '"';
