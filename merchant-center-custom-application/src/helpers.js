@@ -49,14 +49,16 @@ export const convertToActionData = (draft) => ({
   name: transformLocalizedFieldToLocalizedString(draft.nameAllLocales || []),
 });
 
-
-export const encrypt =  (data, secretKeyForEncryption) =>  {
-  const encrypted = CryptoJS.AES.encrypt(data, secretKeyForEncryption).toString();
+export const encrypt = (data, secretKeyForEncryption) => {
+  const utf8Key = CryptoJS.enc.Utf8.parse(secretKeyForEncryption);
+  const key = CryptoJS.SHA256(utf8Key);
+  const encrypted = CryptoJS.AES.encrypt(data, key.toString()).toString();
   return encrypted;
-}
-
+};
 export const decrypt = (encryptedData, secretKeyForEncryption) => {
-  const bytes = CryptoJS.AES.decrypt(encryptedData, secretKeyForEncryption);
+  const utf8Key = CryptoJS.enc.Utf8.parse(secretKeyForEncryption);
+  const key = CryptoJS.SHA256(utf8Key);
+  const bytes = CryptoJS.AES.decrypt(encryptedData, key.toString());
   const decrypted = bytes.toString(CryptoJS.enc.Utf8);
   return decrypted;
-}
+};

@@ -11,7 +11,9 @@ function getExtensionUrl() {
 }
 
 function decrypt(encryptedData, secretKeyForEncryption) {
-    const bytes = CryptoJS.AES.decrypt(encryptedData, secretKeyForEncryption);
+    const utf8Key = CryptoJS.enc.Utf8.parse(secretKeyForEncryption);
+    const key = CryptoJS.SHA256(utf8Key);
+    const bytes = CryptoJS.AES.decrypt(encryptedData, key.toString());
     const decrypted = bytes.toString(CryptoJS.enc.Utf8);
     return decrypted;
 }
@@ -50,7 +52,6 @@ function getExtensionConfig() {
         authUrl: config.authUrl
     }
 }
-
 
 async function getPaydockConfig(type = 'all', disableCache = false) {
     if (!paydockConfig || disableCache) {
@@ -124,5 +125,5 @@ export default {
     getPaydockConfig,
     getCtpClient,
     getExtensionConfig,
-    getPaydockApiUrl,
+    getPaydockApiUrl
 }

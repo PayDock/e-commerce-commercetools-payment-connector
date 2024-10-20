@@ -117,7 +117,6 @@ class CommerceToolsAPIAdapter {
         if (data.value.credentials_secret_key) {
             data.value.credentials_secret_key = decrypt(data.value.credentials_secret_key, this.secretKeyForEncryption);
         }
-
         return data
     }
 

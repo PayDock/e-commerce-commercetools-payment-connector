@@ -83,7 +83,7 @@
     "run-func": "3.0.0",
     "serialize-error": "11.0.3",
     "uuid": "^10.0.0",
-    "crypto-js": "^4.2.0"
+    "crypto-js": "4.2.0"
   },
   "mocha": {
     "timeout": 300000,

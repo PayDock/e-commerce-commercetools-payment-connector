@@ -21,6 +21,7 @@ async function processRequest(request, response) {
         })
     }
     let paymentObject = {}
+
     try {
         const authToken = getAuthorizationRequestHeader(request)
         paymentObject = await _getPaymentObject(request)

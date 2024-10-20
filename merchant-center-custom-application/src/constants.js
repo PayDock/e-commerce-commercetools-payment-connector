@@ -59,7 +59,7 @@ export const INITIAL_LIVE_CONNECTION_FORM = {
   alternative_payment_methods_zippay_direct_charge: 'Disable',
 };
 export const INITIAL_SANDBOX_CONNECTION_FORM = {
-  sandbox_mode: 'No', ...INITIAL_LIVE_CONNECTION_FORM,
+  sandbox_mode: 'No', ...INITIAL_LIVE_CONNECTION_FORM
 };
 export const INITIAL_WIDGET_FORM = {
   version_version: 'Custom',

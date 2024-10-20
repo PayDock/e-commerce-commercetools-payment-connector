@@ -54,7 +54,7 @@
     "@jest/globals": "^29.7.0",
     "babel-jest": "^29.7.0",
     "babel-plugin-transform-import-meta": "^2.2.1",
-    "crypto-js": "^4.2.0",
+    "crypto-js": "4.2.0",
     "dotenv": "^16.4.5",
     "jest": "^29.7.0",
     "lockfile-lint": "4.13.2",

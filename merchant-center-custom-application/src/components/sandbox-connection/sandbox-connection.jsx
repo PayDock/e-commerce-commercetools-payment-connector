@@ -23,6 +23,7 @@ import { INITIAL_SANDBOX_CONNECTION_FORM } from '../../constants';
 import { useApplicationContext } from '@commercetools-frontend/application-shell-connectors';
 
 const SandboxConnectionForm = () => {
+
   const env = useApplicationContext(
     (context) => context.environment
   );
@@ -38,6 +39,8 @@ const SandboxConnectionForm = () => {
   const [id, setId] = useState(null);
   const [version, setVersion] = useState(null);
   const [createdAt, setCreatedAt] = useState(null);
+
+
 
   const sandbox_mode_options = [
     { value: 'Yes', label: 'Yes' },
@@ -226,7 +229,8 @@ const SandboxConnectionForm = () => {
     enableReinitialize: true,
   });
 
-
+  console.log('Public Key:', formik.values.credentials_public_key);
+  console.log('Secret Key:', formik.values.credentials_secret_key);
   const handleChange = (event) => {
     const { name, value } = event.target;
 
